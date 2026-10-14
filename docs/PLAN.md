@@ -15,16 +15,16 @@
 - [x] Primer commit
 
 ### Fase 1 — Dominio y reglas · `backend-dev` · 60 min
-- [ ] `domain/models.py`, `domain/issue_codes.py`
-- [ ] `domain/rules.py` (IVA, retención, total, duplicados, cruce contable)
-- [ ] `services/csv_reader.py` (utf-8-sig, extensión, vacío, columnas)
-- [ ] `tests/test_rules.py`, `tests/test_csv_reader.py` en verde
+- [x] `domain/models.py`, `domain/issue_codes.py`
+- [x] `domain/rules.py` (IVA, retención, total, duplicados, cruce contable)
+- [x] `services/csv_reader.py` (utf-8-sig, extensión, vacío, columnas)
+- [x] `tests/test_rules.py`, `tests/test_csv_reader.py` en verde
 
 ### Fase 2 — API · `backend-dev` · 35 min
-- [ ] `services/reconciliation.py` (resumen + detalle)
-- [ ] `schemas.py`, `errors.py`, `api/routes.py`, `main.py` (CORS), `config.py`
-- [ ] `tests/test_api.py` golden 50/28/22 + errores
-- [ ] Verificado en Swagger y con curl
+- [x] `services/reconciliation.py` (resumen + detalle)
+- [x] `schemas.py`, `errors.py`, `api/routes.py`, `main.py` (CORS), `config.py`
+- [x] `tests/test_api.py` golden 50/28/22 + errores
+- [x] Verificado en Swagger y con curl
 
 ### Fase 3 — Frontend · `frontend-dev` (en paralelo con 1–2) · 90 min
 - [ ] Modelos, `ReconciliationApiService`, `ReconciliationStore`, `http-error.mapper`
