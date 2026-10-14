@@ -1,0 +1,20 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Node / Angular
+node_modules/
+dist/
+.angular/
+
+# Entorno / IDE
+.env
+.vscode/
+.idea/
+*:Zone.Identifier
+.DS_Store
+
+# Claude Code (configuración local, no compartida)
+.claude/settings.local.json

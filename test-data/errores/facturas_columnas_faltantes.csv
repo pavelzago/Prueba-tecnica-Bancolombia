@@ -1,0 +1,2 @@
+id_factura,nit_proveedor,fecha_factura,concepto,base_gravable
+FAC-9001,900000001,2026-01-10,Prueba,1000000

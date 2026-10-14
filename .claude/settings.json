@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(.venv/bin/pytest:*)",
+      "Bash(.venv/bin/pip install:*)",
+      "Bash(.venv/bin/uvicorn:*)",
+      "Bash(.venv/bin/python:*)",
+      "Bash(python3 -m venv:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "Bash(npx ng:*)",
+      "Bash(curl -s:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": [
+      "Bash(git push:*)",
+      "Read(./**/.env)"
+    ]
+  }
+}
