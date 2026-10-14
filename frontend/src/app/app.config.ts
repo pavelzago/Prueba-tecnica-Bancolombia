@@ -1,11 +1,18 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { registerLocaleData } from '@angular/common';
+import { provideHttpClient, withFetch } from '@angular/common/http';
+import localeEsCo from '@angular/common/locales/es-CO';
+import { ApplicationConfig, LOCALE_ID, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
 
+registerLocaleData(localeEsCo, 'es-CO');
+
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideRouter(routes)
-  ]
+    provideRouter(routes),
+    provideHttpClient(withFetch()),
+    { provide: LOCALE_ID, useValue: 'es-CO' },
+  ],
 };

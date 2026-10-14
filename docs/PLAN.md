@@ -27,12 +27,12 @@
 - [x] Verificado en Swagger y con curl
 
 ### Fase 3 — Frontend · `frontend-dev` (en paralelo con 1–2) · 90 min
-- [ ] Modelos, `ReconciliationApiService`, `ReconciliationStore`, `http-error.mapper`
-- [ ] Atoms: button, badge, spinner, alert, file-input
-- [ ] Molecules: file-drop-field, stat-card, status-filter
-- [ ] Organisms: upload-panel, summary-panel, results-table
-- [ ] Template + página; estilos y locale `es-CO`
-- [ ] Specs: api.service y store
+- [x] Modelos, `ReconciliationApiService`, `ReconciliationStore`, `http-error.mapper`
+- [x] Atoms: button, badge, spinner, alert, file-input
+- [x] Molecules: file-drop-field, stat-card, status-filter
+- [x] Organisms: upload-panel, summary-panel, results-table
+- [x] Template + página; estilos y locale `es-CO`
+- [x] Specs: api.service y store
 
 ### Fase 4 — Integración y QA · `qa-reviewer` · 20 min
 - [ ] Reporte de hallazgos
