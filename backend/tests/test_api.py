@@ -205,10 +205,11 @@ def test_unexpected_error_returns_500_without_stacktrace(monkeypatch: pytest.Mon
     assert "detalle interno" not in response.text
 
 
-def test_cors_allows_angular_dev_origin():
+@pytest.mark.parametrize("origin", ["http://localhost:4200", "http://127.0.0.1:4200"])
+def test_cors_allows_angular_dev_origin(origin):
     response = client.options(
         "/api/reconciliations",
-        headers={"Origin": "http://localhost:4200", "Access-Control-Request-Method": "POST"},
+        headers={"Origin": origin, "Access-Control-Request-Method": "POST"},
     )
     assert response.status_code == 200
-    assert response.headers["access-control-allow-origin"] == "http://localhost:4200"
+    assert response.headers["access-control-allow-origin"] == origin

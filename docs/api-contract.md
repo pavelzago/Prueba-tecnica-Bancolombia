@@ -6,7 +6,7 @@ Fuente de verdad entre `backend/` y `frontend/`. Cualquier cambio se hace **prim
 - Formato: JSON UTF-8. Nombres de campos en `snake_case` (español, lenguaje de negocio).
 - Montos: `number` (pesos COP, redondeados a 2 decimales como máximo). Internamente el backend usa `Decimal`; se convierte a número solo al serializar.
 - Campos que pueden no existir por datos vacíos/inválidos: `null`.
-- CORS permitido: `http://localhost:4200` (configurable con `CORS_ORIGINS`, separado por comas).
+- CORS permitido: `http://localhost:4200` y `http://127.0.0.1:4200` (configurable con `CORS_ORIGINS`, separado por comas).
 
 ---
 
