@@ -41,15 +41,15 @@
 
 ### Fase 5 — Documentación · `docs-writer` · 25 min
 - [x] `README.md` reproducible
-- [ ] `docs/DECLARACION_USO_IA.md` (borrador listo; falta revisión y marcadores del candidato)
+- [x] `docs/DECLARACION_USO_IA.md` (completada por la IA a pedido del candidato, con hechos de la sesión)
 
 ### Fase 6 — Presentación · `docs-writer` · 25 min
 - [x] `docs/presentacion/presentacion.md` (≤ 5 diapositivas) + capturas
 - [x] PDF exportado
 
 ### Cierre
-- [ ] `/verificar-entrega` sin hallazgos bloqueantes
-- [ ] Commit final y empaquetado
+- [x] Verificación final sin hallazgos bloqueantes (tests, build, higiene)
+- [x] Commit final
 
 ### Extras (solo si sobra tiempo)
 - [x] Rediseño UX/UI ("libro de conciliación"): pasos 1-2-3, archivos de ejemplo, causas clicables, tema oscuro, Plex Sans/Mono
