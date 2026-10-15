@@ -5,6 +5,7 @@ import { Subject, of, throwError } from 'rxjs';
 import { ReconciliationResponse, ResultadoFactura } from '../models/reconciliation.model';
 import { ReconciliationApiService } from './reconciliation-api.service';
 import { ReconciliationStore } from './reconciliation.store';
+import { SampleFilesService } from './sample-files.service';
 
 function row(fila: number, estado: ResultadoFactura['estado']): ResultadoFactura {
   return {
@@ -33,6 +34,44 @@ function row(fila: number, estado: ResultadoFactura['estado']): ResultadoFactura
   };
 }
 
+function withRow(
+  base: ResultadoFactura,
+  patch: Partial<ResultadoFactura>,
+): ResultadoFactura {
+  return { ...base, ...patch };
+}
+
+/** Richer dataset for filter combinations. */
+const FILTER_RESPONSE: ReconciliationResponse = {
+  summary: {
+    total_facturas: 4,
+    correctas: 1,
+    con_inconsistencia: 3,
+    total_registros_contables: 4,
+    por_causa: [],
+  },
+  results: [
+    withRow(row(2, 'Correcta'), { id_factura: 'FAC-0001', concepto: 'Consultoría profesional' }),
+    withRow(row(3, 'Con inconsistencia'), { id_factura: 'FAC-0002', concepto: 'Soporte técnico' }),
+    withRow(row(4, 'Con inconsistencia'), {
+      id_factura: 'FAC-0003',
+      nit_proveedor: '800111222',
+      concepto: 'Consultoría profesional',
+      inconsistencias: [
+        { codigo: 'SIN_REGISTRO_CONTABLE', descripcion: 'Factura sin registro contable' },
+      ],
+    }),
+    withRow(row(5, 'Con inconsistencia'), {
+      id_factura: 'FAC-0004',
+      concepto: null,
+      inconsistencias: [
+        { codigo: 'IVA_DIFERENTE', descripcion: 'IVA reportado difiere del calculado' },
+        { codigo: 'SIN_REGISTRO_CONTABLE', descripcion: 'Factura sin registro contable' },
+      ],
+    }),
+  ],
+};
+
 const RESPONSE: ReconciliationResponse = {
   summary: {
     total_facturas: 3,
@@ -47,13 +86,18 @@ const RESPONSE: ReconciliationResponse = {
 describe('ReconciliationStore', () => {
   let store: ReconciliationStore;
   const api = { reconcile: vi.fn() };
+  const samples = { load: vi.fn() };
   const invoices = new File(['a'], 'facturas.csv');
   const ledger = new File(['b'], 'contabilidad.csv');
 
   beforeEach(() => {
     api.reconcile.mockReset();
+    samples.load.mockReset();
     TestBed.configureTestingModule({
-      providers: [{ provide: ReconciliationApiService, useValue: api }],
+      providers: [
+        { provide: ReconciliationApiService, useValue: api },
+        { provide: SampleFilesService, useValue: samples },
+      ],
     });
     store = TestBed.inject(ReconciliationStore);
   });
@@ -142,5 +186,101 @@ describe('ReconciliationStore', () => {
     store.process();
     expect(store.filter()).toBe('all');
     expect(store.error()).toBeNull();
+  });
+
+  describe('combined filters', () => {
+    beforeEach(() => {
+      api.reconcile.mockReturnValue(of(FILTER_RESPONSE));
+      store.setFile('invoices', invoices);
+      store.setFile('ledger', ledger);
+      store.process();
+    });
+
+    const filas = () => store.filteredResults().map((r) => r.fila);
+
+    it('searches by invoice id, NIT or concept, case- and accent-insensitive', () => {
+      store.setSearch('fac-0002');
+      expect(filas()).toEqual([3]);
+
+      store.setSearch('800111');
+      expect(filas()).toEqual([4]);
+
+      store.setSearch('  CONSULTORIA ');
+      expect(filas()).toEqual([2, 4]);
+
+      store.setSearch('no-existe');
+      expect(filas()).toEqual([]);
+
+      store.setSearch('');
+      expect(filas()).toEqual([2, 3, 4, 5]);
+    });
+
+    it('filters by cause and toggles it off when selected again', () => {
+      store.toggleCause('SIN_REGISTRO_CONTABLE');
+      expect(store.causeFilter()).toBe('SIN_REGISTRO_CONTABLE');
+      expect(filas()).toEqual([4, 5]);
+
+      store.toggleCause('IVA_DIFERENTE');
+      expect(filas()).toEqual([3, 5]);
+
+      store.toggleCause('IVA_DIFERENTE');
+      expect(store.causeFilter()).toBeNull();
+      expect(filas()).toEqual([2, 3, 4, 5]);
+    });
+
+    it('combines status + cause + search and counts per status ignoring the status filter', () => {
+      store.setSearch('consultoría');
+      expect(store.statusCounts()).toEqual({ all: 2, correct: 1, inconsistent: 1 });
+
+      store.setFilter('Con inconsistencia');
+      expect(filas()).toEqual([4]);
+
+      store.toggleCause('IVA_DIFERENTE');
+      expect(filas()).toEqual([]);
+      expect(store.statusCounts()).toEqual({ all: 0, correct: 0, inconsistent: 0 });
+      expect(store.hasActiveFilters()).toBe(true);
+
+      store.clearFilters();
+      expect(filas()).toEqual([2, 3, 4, 5]);
+      expect(store.hasActiveFilters()).toBe(false);
+    });
+
+    it('selecting a cause while showing only correct invoices switches the status to all', () => {
+      store.setFilter('Correcta');
+      store.toggleCause('SIN_REGISTRO_CONTABLE');
+      expect(store.filter()).toBe('all');
+      expect(filas()).toEqual([4, 5]);
+    });
+
+    it('a new run clears search and cause and records the processing time', () => {
+      store.setSearch('fac');
+      store.toggleCause('IVA_DIFERENTE');
+      store.process();
+      expect(store.search()).toBe('');
+      expect(store.causeFilter()).toBeNull();
+      expect(store.processedAt()).toBeInstanceOf(Date);
+    });
+  });
+
+  it('loadSample sets the sample files and processes them with the same flow', () => {
+    const sampleInvoices = new File(['x'], 'facturas.csv');
+    const sampleLedger = new File(['y'], 'contabilidad.csv');
+    samples.load.mockReturnValue(of({ invoices: sampleInvoices, ledger: sampleLedger }));
+    api.reconcile.mockReturnValue(of(RESPONSE));
+
+    store.loadSample();
+
+    expect(store.invoicesFile()).toBe(sampleInvoices);
+    expect(store.ledgerFile()).toBe(sampleLedger);
+    expect(api.reconcile).toHaveBeenCalledWith(sampleInvoices, sampleLedger);
+    expect(store.result()).toEqual(RESPONSE);
+  });
+
+  it('loadSample shows an actionable error when the samples cannot be fetched', () => {
+    samples.load.mockReturnValue(throwError(() => new Error('404')));
+    store.loadSample();
+    expect(store.loading()).toBe(false);
+    expect(store.error()?.message).toContain('archivos de ejemplo');
+    expect(api.reconcile).not.toHaveBeenCalled();
   });
 });

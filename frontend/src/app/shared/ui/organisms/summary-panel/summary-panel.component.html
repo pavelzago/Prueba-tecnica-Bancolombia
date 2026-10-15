@@ -1,0 +1,70 @@
+<section class="panel" aria-labelledby="summary-title">
+  <app-step-header
+    [number]="2"
+    title="Resumen"
+    titleId="summary-title"
+    [state]="summary() ? 'current' : 'pending'"
+  />
+
+  @if (summary(); as s) {
+    <div class="summary">
+      <div class="summary__figures">
+        <app-stat-card
+          label="Facturas procesadas"
+          [value]="s.total_facturas"
+          [caption]="s.total_registros_contables + ' registros contables leídos'"
+        />
+        <app-stat-card label="Correctas" tone="success" [value]="s.correctas" [share]="ratio(s.correctas)" />
+        <app-stat-card
+          label="Con inconsistencia"
+          tone="danger"
+          [value]="s.con_inconsistencia"
+          [share]="ratio(s.con_inconsistencia)"
+        />
+        @if (s.total_facturas) {
+          <div class="summary__split" aria-hidden="true">
+            <span class="summary__split-ok" [style.flex-grow]="s.correctas"></span>
+            <span class="summary__split-bad" [style.flex-grow]="s.con_inconsistencia"></span>
+          </div>
+        }
+      </div>
+
+      <div class="summary__causes">
+        <div class="summary__causes-head">
+          <h3 class="summary__subtitle">Inconsistencias por causa</h3>
+          @if (s.por_causa.length) {
+            <p class="summary__note">Haz clic en una causa para ver solo esas facturas. Una factura puede tener varias.</p>
+          }
+        </div>
+        @if (s.por_causa.length) {
+          <ul class="causes">
+            @for (cause of s.por_causa; track cause.codigo) {
+              <li>
+                <app-cause-bar
+                  [label]="cause.descripcion"
+                  [count]="cause.cantidad"
+                  [max]="maxCause()"
+                  [active]="activeCause() === cause.codigo"
+                  (toggled)="causeToggle.emit(cause.codigo)"
+                />
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="summary__note">Todas las facturas cuadran: no se encontraron inconsistencias.</p>
+        }
+      </div>
+    </div>
+  } @else if (loading()) {
+    <app-empty-state class="summary__empty" icon="chart" title="Procesando los archivos…">
+      <app-spinner label="Validando facturas contra la contabilidad…" />
+    </app-empty-state>
+  } @else {
+    <app-empty-state
+      class="summary__empty"
+      icon="chart"
+      title="Aún no hay resultados"
+      text="Aquí verás el total de facturas, cuántas cuadran y la causa de cada inconsistencia. Carga los dos archivos o prueba con los de ejemplo."
+    />
+  }
+</section>

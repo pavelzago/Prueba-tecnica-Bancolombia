@@ -26,19 +26,20 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
     .file-input__button {
       display: inline-flex;
       align-items: center;
-      min-height: 2.5rem;
-      padding: 0 var(--space-4);
-      border: 2px solid var(--color-ink);
+      min-height: 2.25rem;
+      padding: 0 var(--space-3);
+      border: 1px solid var(--color-border-strong);
       border-radius: var(--radius);
       background: var(--color-surface);
       color: var(--color-ink);
-      font-weight: 600;
+      font-size: var(--text-sm);
+      font-weight: var(--weight-semibold);
       cursor: pointer;
     }
-    .file-input__button:hover { background: var(--color-muted-bg); }
-    .file-input__button--disabled { opacity: 0.55; cursor: not-allowed; }
+    .file-input__button:hover { background: var(--color-surface-hover); border-color: var(--color-ink); }
+    .file-input__button--disabled { opacity: 0.5; cursor: not-allowed; }
     .file-input:focus-visible + .file-input__button {
-      outline: 3px solid var(--color-focus);
+      outline: 2px solid var(--color-focus);
       outline-offset: 2px;
     }
   `,

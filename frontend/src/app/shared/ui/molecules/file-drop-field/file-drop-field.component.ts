@@ -2,12 +2,13 @@ import { ChangeDetectionStrategy, Component, computed, input, output, signal } f
 import { DecimalPipe } from '@angular/common';
 
 import { FileInputComponent } from '../../atoms/file-input/file-input.component';
+import { IconComponent } from '../../atoms/icon/icon.component';
 
 /** Label + file input + selected file name, with drag & drop support. */
 @Component({
   selector: 'app-file-drop-field',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FileInputComponent, DecimalPipe],
+  imports: [FileInputComponent, IconComponent, DecimalPipe],
   template: `
     <div
       class="field"
@@ -17,23 +18,29 @@ import { FileInputComponent } from '../../atoms/file-input/file-input.component'
       (dragleave)="dragging.set(false)"
       (drop)="onDrop($event)"
     >
-      <label class="field__label" [for]="inputId()">{{ label() }}</label>
-      <p class="field__hint" [id]="hintId()">{{ hint() }}</p>
+      <span class="field__mark" aria-hidden="true">
+        <app-icon [name]="file() ? 'check' : 'file'" [size]="20" />
+      </span>
+      <div class="field__body">
+        <label class="field__label" [for]="inputId()">{{ label() }}</label>
+        <p class="field__hint" [id]="hintId()">{{ hint() }}</p>
+        <p class="field__status" [id]="statusId()" aria-live="polite">
+          @if (file(); as f) {
+            <span class="field__file">{{ f.name }}</span>
+            <span class="field__size">{{ f.size / 1024 | number: '1.0-1' }} KB</span>
+          } @else {
+            Arrástralo aquí o selecciónalo.
+          }
+        </p>
+      </div>
       <app-file-input
+        class="field__action"
         [inputId]="inputId()"
         [disabled]="disabled()"
         [describedBy]="hintId() + ' ' + statusId()"
-        [buttonText]="file() ? 'Cambiar archivo' : 'Seleccionar archivo'"
+        [buttonText]="file() ? 'Cambiar' : 'Seleccionar'"
         (fileSelected)="fileChange.emit($event)"
       />
-      <p class="field__status" [id]="statusId()" aria-live="polite">
-        @if (file(); as f) {
-          <span class="field__file">{{ f.name }}</span>
-          <span class="field__size">({{ f.size / 1024 | number: '1.0-1' }} KB)</span>
-        } @else {
-          Ningún archivo seleccionado. También puedes arrastrarlo aquí.
-        }
-      </p>
     </div>
   `,
   styleUrl: './file-drop-field.component.scss',

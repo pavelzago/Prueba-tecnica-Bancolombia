@@ -1,94 +1,141 @@
 <section class="panel" aria-labelledby="results-title">
-  <div class="results__header">
-    <h2 id="results-title" class="panel__title">3. Detalle por factura</h2>
-    <app-status-filter
-      ariaLabel="Filtrar facturas por estado"
-      [options]="filterOptions()"
-      [value]="filter()"
-      (valueChange)="filterChange.emit($event)"
+  <app-step-header
+    [number]="3"
+    title="Detalle por factura"
+    titleId="results-title"
+    [state]="hasResult() ? 'current' : 'pending'"
+    [description]="hasResult() ? '' : 'Disponible después de procesar: cada factura con su estado, sus causas y la opción de filtrar, buscar y exportar a CSV.'"
+  />
+
+  @if (hasResult()) {
+    <app-results-toolbar
+      class="results__toolbar"
+      [filter]="filter()"
+      [counts]="counts()"
+      [search]="search()"
+      [causeLabel]="causeLabel()"
+      [shown]="results().length"
+      [total]="total()"
+      [hasActiveFilters]="hasActiveFilters()"
+      (filterChange)="filterChange.emit($event)"
+      (searchChange)="searchChange.emit($event)"
+      (causeClear)="causeClear.emit()"
+      (clearFilters)="clearFilters.emit()"
+      (exportCsv)="exportCsv.emit()"
     />
-  </div>
 
-  <p class="results__count" aria-live="polite">
-    Mostrando {{ results().length }} de {{ counts().all }} facturas.
-  </p>
-
-  @if (results().length) {
-    <div class="table-wrap" role="region" aria-labelledby="results-title" tabindex="0">
-      <table class="table">
-        <thead>
-          <tr>
-            <th scope="col">Fila</th>
-            <th scope="col">Factura</th>
-            <th scope="col">Fecha</th>
-            <th scope="col">Concepto</th>
-            <th scope="col" class="num">Base gravable</th>
-            <th scope="col" class="num">IVA</th>
-            <th scope="col" class="num">Retención</th>
-            <th scope="col" class="num">Total</th>
-            <th scope="col" class="num">Contabilidad</th>
-            <th scope="col">Estado</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (row of results(); track row.fila) {
-            <tr [class.row--issue]="row.estado === 'Con inconsistencia'">
-              <td class="muted">{{ row.fila }}</td>
-              <td>
-                <strong class="nowrap">{{ row.id_factura }}</strong>
-                <span class="sub nowrap">NIT {{ row.nit_proveedor ?? '—' }}</span>
-              </td>
-              <td class="nowrap">{{ row.fecha_factura ?? '—' }}</td>
-              <td>{{ row.concepto ?? '—' }}</td>
-              <td class="num">{{ (row.base_gravable | currency: 'COP' : 'symbol-narrow' : '1.0-2') ?? '—' }}</td>
-              <td class="num" [class.cell--diff]="differs(row.iva_reportado, row.iva_calculado)">
-                {{ (row.iva_reportado | currency: 'COP' : 'symbol-narrow' : '1.0-2') ?? '—' }}
-                <span class="sub">Tarifa {{ (row.tarifa_iva | percent: '1.0-2') ?? '—' }}</span>
-              </td>
-              <td class="num" [class.cell--diff]="differs(row.retencion_reportada, row.retencion_calculada)">
-                {{ (row.retencion_reportada | currency: 'COP' : 'symbol-narrow' : '1.0-2') ?? '—' }}
-                <span class="sub">Tarifa {{ (row.tarifa_retencion | percent: '1.0-2') ?? '—' }}</span>
-              </td>
-              <td class="num" [class.cell--diff]="differs(row.total_reportado, row.total_calculado)">
-                {{ (row.total_reportado | currency: 'COP' : 'symbol-narrow' : '1.0-2') ?? '—' }}
-              </td>
-              <td class="num" [class.cell--diff]="differs(row.valor_contabilizado, row.total_reportado)">
-                {{ (row.valor_contabilizado | currency: 'COP' : 'symbol-narrow' : '1.0-2') ?? 'Sin registro' }}
-                @if (row.estado_contable) {
-                  <span class="sub">{{ row.estado_contable }} · {{ row.lineas_contables }} línea(s)</span>
-                }
-              </td>
-              <td>
-                <app-badge [tone]="row.estado === 'Correcta' ? 'success' : 'danger'">{{ row.estado }}</app-badge>
-              </td>
+    @if (results().length) {
+      <div class="table-wrap" role="region" aria-labelledby="results-title" tabindex="0">
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col" class="num col-fila">Fila</th>
+              <th scope="col">Factura</th>
+              <th scope="col">NIT</th>
+              <th scope="col">Concepto</th>
+              <th scope="col" class="num">Base</th>
+              <th scope="col" class="num">IVA</th>
+              <th scope="col" class="num">Retención</th>
+              <th scope="col" class="num">Total</th>
+              <th scope="col" class="num">Contabilidad</th>
+              <th scope="col">Estado</th>
             </tr>
-            @if (row.inconsistencias.length) {
-              <tr class="row--detail">
-                <td></td>
-                <td colspan="9">
-                  <p class="visually-hidden">Causas de inconsistencia de {{ row.id_factura }}:</p>
-                  <ul class="issues">
-                    @for (issue of row.inconsistencias; track $index) {
-                      <li class="issues__item">
-                        <span class="issues__text">{{ issue.descripcion }}</span>
-                        @if (comparisonFor(issue.codigo, row); as cmp) {
-                          <span class="issues__cmp">
-                            {{ cmp.reportedLabel }}: <strong>{{ cmp.reported | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</strong>
-                            · {{ cmp.expectedLabel }}: <strong>{{ cmp.expected | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</strong>
-                            · Diferencia: <strong>{{ cmp.difference | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</strong>
-                          </span>
-                        }
-                      </li>
-                    }
-                  </ul>
+          </thead>
+          <tbody>
+            @for (row of results(); track row.fila) {
+              @let issue = row.estado === 'Con inconsistencia';
+              <tr class="row" [class.row--issue]="issue" [class.row--has-detail]="row.inconsistencias.length">
+                <td class="num col-fila muted">{{ row.fila }}</td>
+                <td class="nowrap">
+                  <span class="mono strong">{{ row.id_factura }}</span>
+                  <span class="sub mono">{{ row.fecha_factura ?? 'Sin fecha' }}</span>
+                </td>
+                <td class="mono nowrap">{{ row.nit_proveedor ?? '—' }}</td>
+                <td class="col-concept">{{ row.concepto ?? '—' }}</td>
+                <td class="num amount">{{ (row.base_gravable | currency: 'COP' : 'symbol-narrow' : '1.0-2') ?? '—' }}</td>
+
+                <td class="num amount">
+                  @if (differs(row.iva_reportado, row.iva_calculado)) {
+                    <s class="amount--wrong"><span class="visually-hidden">Reportado </span>{{ row.iva_reportado | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</s>
+                    <span class="amount--expected"><span class="visually-hidden">Calculado </span>{{ row.iva_calculado | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</span>
+                  } @else {
+                    {{ (row.iva_reportado | currency: 'COP' : 'symbol-narrow' : '1.0-2') ?? '—' }}
+                  }
+                  <span class="sub">{{ (row.tarifa_iva | percent: '1.0-2') ?? '—' }}</span>
+                </td>
+
+                <td class="num amount">
+                  @if (differs(row.retencion_reportada, row.retencion_calculada)) {
+                    <s class="amount--wrong"><span class="visually-hidden">Reportada </span>{{ row.retencion_reportada | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</s>
+                    <span class="amount--expected"><span class="visually-hidden">Calculada </span>{{ row.retencion_calculada | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</span>
+                  } @else {
+                    {{ (row.retencion_reportada | currency: 'COP' : 'symbol-narrow' : '1.0-2') ?? '—' }}
+                  }
+                  <span class="sub">{{ (row.tarifa_retencion | percent: '1.0-2') ?? '—' }}</span>
+                </td>
+
+                <td class="num amount">
+                  @if (differs(row.total_reportado, row.total_calculado)) {
+                    <s class="amount--wrong"><span class="visually-hidden">Reportado </span>{{ row.total_reportado | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</s>
+                    <span class="amount--expected"><span class="visually-hidden">Calculado </span>{{ row.total_calculado | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</span>
+                  } @else {
+                    <span class="strong">{{ (row.total_reportado | currency: 'COP' : 'symbol-narrow' : '1.0-2') ?? '—' }}</span>
+                  }
+                </td>
+
+                <td class="num amount">
+                  @if (row.valor_contabilizado === null) {
+                    <span class="ledger--missing">Sin registro</span>
+                  } @else {
+                    <span [class.ledger--diff]="differs(row.valor_contabilizado, row.total_reportado)">
+                      {{ row.valor_contabilizado | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}
+                    </span>
+                    <span class="sub sans" [class.ledger--pending]="row.estado_contable !== 'Contabilizada'">
+                      {{ row.estado_contable ?? 'Sin estado' }}@if (row.lineas_contables > 1) { · {{ row.lineas_contables }} líneas }
+                    </span>
+                  }
+                </td>
+
+                <td>
+                  <app-badge [tone]="issue ? 'danger' : 'success'">{{ row.estado }}</app-badge>
                 </td>
               </tr>
+
+              @if (row.inconsistencias.length) {
+                <tr class="row row--issue row--detail">
+                  <td class="col-fila"></td>
+                  <td colspan="9">
+                    <p class="visually-hidden">Causas de inconsistencia de {{ row.id_factura }}:</p>
+                    <ul class="issues">
+                      @for (item of row.inconsistencias; track $index) {
+                        <li class="issue">
+                          <span class="issue__code">{{ causeLabels[item.codigo] }}</span>
+                          <span class="issue__text">{{ item.descripcion }}</span>
+                          @let diff = differenceFor(item.codigo, row);
+                          @if (diff !== null) {
+                            <span class="issue__cmp mono">
+                              Diferencia <strong>{{ diff > 0 ? '+' : '' }}{{ diff | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</strong>
+                            </span>
+                          }
+                        </li>
+                      }
+                    </ul>
+                  </td>
+                </tr>
+              }
             }
-          }
-        </tbody>
-      </table>
-    </div>
-  } @else {
-    <p class="results__empty">No hay facturas para el filtro seleccionado.</p>
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <app-empty-state
+        class="results__empty"
+        icon="search"
+        title="Ninguna factura coincide con los filtros"
+        text="Prueba con otro término de búsqueda, otra causa u otro estado."
+      >
+        <app-button variant="secondary" size="sm" (pressed)="clearFilters.emit()">Limpiar filtros</app-button>
+      </app-empty-state>
+    }
   }
 </section>

@@ -74,3 +74,27 @@ export type StatusFilter = 'all' | EstadoFactura;
 
 /** UI-only: which of the two input files is being set. */
 export type FileKind = 'invoices' | 'ledger';
+
+/** UI-only: invoices per status after cause + search filters. */
+export interface StatusCounts {
+  all: number;
+  correct: number;
+  inconsistent: number;
+}
+
+/** UI-only: cause filter (null = any cause). */
+export type CauseFilter = CodigoInconsistencia | null;
+
+/** UI-only: short, human label per inconsistency code (chips, toolbar). */
+export const CAUSE_LABELS: Record<CodigoInconsistencia, string> = {
+  CAMPO_VACIO: 'Campo vacío',
+  VALOR_INVALIDO: 'Valor inválido',
+  IVA_DIFERENTE: 'IVA diferente',
+  RETENCION_DIFERENTE: 'Retención diferente',
+  TOTAL_DIFERENTE: 'Total diferente',
+  FACTURA_DUPLICADA: 'Factura duplicada',
+  SIN_REGISTRO_CONTABLE: 'Sin registro contable',
+  REGISTRO_CONTABLE_DUPLICADO: 'Registro contable duplicado',
+  CONTABILIZACION_PENDIENTE: 'Contabilización pendiente',
+  VALOR_CONTABLE_DIFERENTE: 'Valor contable diferente',
+};
