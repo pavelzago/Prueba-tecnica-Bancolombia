@@ -44,8 +44,8 @@
 - [ ] `docs/DECLARACION_USO_IA.md` (borrador listo; falta revisión y marcadores del candidato)
 
 ### Fase 6 — Presentación · `docs-writer` · 25 min
-- [ ] `docs/presentacion/presentacion.md` (≤ 5 diapositivas) + capturas
-- [ ] PDF exportado
+- [x] `docs/presentacion/presentacion.md` (≤ 5 diapositivas) + capturas
+- [x] PDF exportado
 
 ### Cierre
 - [ ] `/verificar-entrega` sin hallazgos bloqueantes
