@@ -40,8 +40,8 @@
 - [x] Flujo E2E manual en el navegador (datos reales, filtro y errores validados por el candidato, 15-oct)
 
 ### Fase 5 — Documentación · `docs-writer` · 25 min
-- [ ] `README.md` reproducible
-- [ ] `docs/DECLARACION_USO_IA.md` (revisada y completada por el candidato)
+- [x] `README.md` reproducible
+- [ ] `docs/DECLARACION_USO_IA.md` (borrador listo; falta revisión y marcadores del candidato)
 
 ### Fase 6 — Presentación · `docs-writer` · 25 min
 - [ ] `docs/presentacion/presentacion.md` (≤ 5 diapositivas) + capturas
@@ -52,8 +52,9 @@
 - [ ] Commit final y empaquetado
 
 ### Extras (solo si sobra tiempo)
-- [ ] Exportar resultados a CSV
-- [ ] Búsqueda por id/NIT y filtro por causa
+- [x] Rediseño UX/UI ("libro de conciliación"): pasos 1-2-3, archivos de ejemplo, causas clicables, tema oscuro, Plex Sans/Mono
+- [x] Exportar resultados a CSV
+- [x] Búsqueda por id/NIT y filtro por causa
 - [ ] Posibles duplicados por contenido (FAC-0007 ↔ FAC-0045)
 - [ ] docker-compose
 - [ ] CI (GitHub Actions)
