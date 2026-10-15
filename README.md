@@ -3,6 +3,8 @@
 Solución a la prueba técnica para el rol de **Analista III** (Gerencia de Evolución Contable y Tributaria, Bancolombia).
 Prototipo web que carga `facturas.csv` y `contabilidad.csv`, aplica reglas contables y tributarias y clasifica cada factura como **Correcta** o **Con inconsistencia**, indicando la causa.
 
+> 📘 La explicación completa (instalación paso a paso, reglas con fórmulas, análisis factura por factura de los datos de prueba, API, rendimiento y solución de problemas) está en [`docs/GUIA_DETALLADA.md`](docs/GUIA_DETALLADA.md).
+
 ![Resultados de la conciliación](docs/presentacion/img/conciliador-claro-desktop-resultados.png)
 
 ## 🚀 Funcionalidades
