@@ -1,10 +1,12 @@
 """Errores de archivo y manejadores HTTP con el formato único {code, message, details}."""
 
 import logging
+from collections.abc import Awaitable, Callable
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 logger = logging.getLogger(__name__)
 
@@ -47,15 +49,35 @@ async def request_validation_error_handler(_: Request, exc: RequestValidationErr
     )
 
 
-async def unhandled_error_handler(_: Request, exc: Exception) -> JSONResponse:
-    logger.exception("Error no controlado", exc_info=exc)
+_HTTP_ERROR_CODES = {404: "NOT_FOUND", 405: "METHOD_NOT_ALLOWED"}
+
+
+async def http_exception_handler(_: Request, exc: StarletteHTTPException) -> JSONResponse:
+    """404/405 y demás errores HTTP de Starlette con el mismo formato que el resto de la API."""
     return JSONResponse(
-        status_code=500,
-        content=error_body("INTERNAL_ERROR", "Ocurrió un error inesperado al procesar la solicitud."),
+        status_code=exc.status_code,
+        content=error_body(_HTTP_ERROR_CODES.get(exc.status_code, "HTTP_ERROR"), str(exc.detail)),
     )
+
+
+async def catch_unhandled_errors(request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
+    """Middleware que convierte cualquier excepción no controlada en 500 INTERNAL_ERROR.
+
+    Se usa un middleware (y no `add_exception_handler(Exception, ...)`) porque ese handler
+    corre fuera de CORSMiddleware: el 500 saldría sin cabeceras CORS y el navegador lo
+    reportaría como error de red en vez de mostrar el mensaje.
+    """
+    try:
+        return await call_next(request)
+    except Exception:
+        logger.exception("Error no controlado")
+        return JSONResponse(
+            status_code=500,
+            content=error_body("INTERNAL_ERROR", "Ocurrió un error inesperado al procesar la solicitud."),
+        )
 
 
 def register_error_handlers(app: FastAPI) -> None:
     app.add_exception_handler(FileValidationError, file_validation_error_handler)  # type: ignore[arg-type]
     app.add_exception_handler(RequestValidationError, request_validation_error_handler)  # type: ignore[arg-type]
-    app.add_exception_handler(Exception, unhandled_error_handler)
+    app.add_exception_handler(StarletteHTTPException, http_exception_handler)  # type: ignore[arg-type]

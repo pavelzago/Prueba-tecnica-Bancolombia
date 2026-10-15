@@ -190,7 +190,7 @@ def test_missing_file_returns_422_missing_file():
     assert body["details"] == ["contabilidad"]
 
 
-def test_unexpected_error_returns_500_without_stacktrace(monkeypatch: pytest.MonkeyPatch):
+def test_unexpected_error_returns_500_without_stacktrace_and_with_cors(monkeypatch: pytest.MonkeyPatch):
     def boom(**_: object):
         raise RuntimeError("detalle interno")
 
@@ -199,10 +199,23 @@ def test_unexpected_error_returns_500_without_stacktrace(monkeypatch: pytest.Mon
     path = TEST_DATA / "facturas.csv"
     response = safe_client.post(
         "/api/reconciliations",
+        headers={"Origin": "http://localhost:4200"},
         files={"facturas": (path.name, path.read_bytes()), "contabilidad": (path.name, path.read_bytes())},
     )
     assert_error(response, 500, "INTERNAL_ERROR")
     assert "detalle interno" not in response.text
+    # Sin esta cabecera el navegador mostraría un error de red en lugar del mensaje.
+    assert response.headers["access-control-allow-origin"] == "http://localhost:4200"
+
+
+def test_unknown_route_returns_404_with_error_format():
+    assert_error(client.get("/api/no-existe"), 404, "NOT_FOUND")
+
+
+def test_root_redirects_to_docs():
+    response = client.get("/", follow_redirects=False)
+    assert response.status_code in (302, 307)
+    assert response.headers["location"] == "/docs"
 
 
 @pytest.mark.parametrize("origin", ["http://localhost:4200", "http://127.0.0.1:4200"])

@@ -133,6 +133,7 @@ interface ErrorResponse { code: string; message: string; details: string[]; }
 | 413 | `FILE_TOO_LARGE` | Archivo > 2 MB |
 | 422 | `MISSING_COLUMNS` | Faltan columnas obligatorias (`details` = columnas faltantes) |
 | 422 | `MISSING_FILE` | No se envió `facturas` o `contabilidad` |
-| 500 | `INTERNAL_ERROR` | Error no controlado (sin stacktrace) |
+| 404 / 405 | `NOT_FOUND` / `METHOD_NOT_ALLOWED` | Ruta o método inexistente |
+| 500 | `INTERNAL_ERROR` | Error no controlado (sin stacktrace; incluye cabeceras CORS para que el front muestre el mensaje) |
 
 `message` está en español y es apto para mostrarse directamente al usuario.
