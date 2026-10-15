@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output, viewChild } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
 
 import { StatusCounts, StatusFilter } from '../../../../core/models/reconciliation.model';
 import { ButtonComponent } from '../../atoms/button/button.component';
@@ -11,7 +12,7 @@ import { FilterOption, StatusFilterComponent } from '../../molecules/status-filt
 @Component({
   selector: 'app-results-toolbar',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonComponent, ChipComponent, IconComponent, SearchInputComponent, StatusFilterComponent],
+  imports: [DecimalPipe, ButtonComponent, ChipComponent, IconComponent, SearchInputComponent, StatusFilterComponent],
   template: `
     <div class="toolbar">
       <div class="toolbar__row">
@@ -27,6 +28,7 @@ import { FilterOption, StatusFilterComponent } from '../../molecules/status-filt
           label="Buscar por factura, NIT o concepto"
           placeholder="Buscar factura, NIT o concepto"
           [value]="search()"
+          [debounceMs]="searchDebounceMs()"
           (valueChange)="searchChange.emit($event)"
         />
         <app-button
@@ -42,7 +44,20 @@ import { FilterOption, StatusFilterComponent } from '../../molecules/status-filt
 
       <div class="toolbar__meta">
         <p class="toolbar__count" aria-live="polite">
-          Mostrando <strong class="tabular">{{ shown() }}</strong> de <span class="tabular">{{ total() }}</span> facturas
+          @if (shown() === 0) {
+            Ninguna factura coincide · <span class="tabular">{{ total() | number }}</span> en total
+          } @else {
+            Mostrando
+            @if (rangeTo() - rangeFrom() + 1 < shown()) {
+              <strong class="tabular">{{ rangeFrom() | number }}–{{ rangeTo() | number }}</strong> de
+            }
+            <strong class="tabular">{{ shown() | number }}</strong>
+            @if (shown() < total()) {
+              {{ shown() === 1 ? 'factura filtrada' : 'facturas filtradas' }} · <span class="tabular">{{ total() | number }}</span> en total
+            } @else {
+              {{ shown() === 1 ? 'factura' : 'facturas' }}
+            }
+          }
         </p>
         @if (causeLabel(); as label) {
           <app-chip tone="accent" [removable]="true" removeLabel="Quitar filtro de causa" (removed)="causeClear.emit()">
@@ -50,7 +65,7 @@ import { FilterOption, StatusFilterComponent } from '../../molecules/status-filt
           </app-chip>
         }
         @if (hasActiveFilters()) {
-          <app-button variant="ghost" size="sm" (pressed)="clearFilters.emit()">Limpiar filtros</app-button>
+          <app-button variant="ghost" size="sm" (pressed)="onClearFilters()">Limpiar filtros</app-button>
         }
       </div>
     </div>
@@ -76,8 +91,14 @@ export class ResultsToolbarComponent {
   readonly search = input('');
   /** Label of the active cause filter, or null. */
   readonly causeLabel = input<string | null>(null);
+  /** Rows after all filters (every page). */
   readonly shown = input.required<number>();
+  /** Rows in the whole result. */
   readonly total = input.required<number>();
+  /** 1-based range of the current page. */
+  readonly rangeFrom = input(1);
+  readonly rangeTo = input(Infinity);
+  readonly searchDebounceMs = input(200);
   readonly hasActiveFilters = input(false);
 
   readonly filterChange = output<StatusFilter>();
@@ -85,6 +106,13 @@ export class ResultsToolbarComponent {
   readonly causeClear = output<void>();
   readonly clearFilters = output<void>();
   readonly exportCsv = output<void>();
+
+  private readonly searchInput = viewChild(SearchInputComponent);
+
+  protected onClearFilters(): void {
+    this.searchInput()?.reset();
+    this.clearFilters.emit();
+  }
 
   protected readonly filterOptions = computed<FilterOption<StatusFilter>[]>(() => [
     { value: 'all', label: 'Todas', count: this.counts().all },

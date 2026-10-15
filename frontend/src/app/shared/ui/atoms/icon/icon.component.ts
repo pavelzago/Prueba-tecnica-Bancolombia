@@ -10,7 +10,9 @@ export type IconName =
   | 'upload'
   | 'swap'
   | 'table'
-  | 'chart';
+  | 'chart'
+  | 'chevron-left'
+  | 'chevron-right';
 
 /** 24×24 stroke paths (drawn for this app). Decorative unless `label` is given. */
 const PATHS: Record<IconName, string> = {
@@ -24,6 +26,8 @@ const PATHS: Record<IconName, string> = {
   swap: 'M7 7h12l-3-3M17 17H5l3 3',
   table: 'M4 5h16v14H4zM4 10h16M4 14.5h16M10 5v14',
   chart: 'M4 20h16M7 16V10M12 16V5M17 16v-4',
+  'chevron-left': 'M14.5 6l-6 6 6 6',
+  'chevron-right': 'M9.5 6l6 6-6 6',
 };
 
 @Component({

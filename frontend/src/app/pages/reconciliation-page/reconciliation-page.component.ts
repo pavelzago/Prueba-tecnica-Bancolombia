@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, viewChild } from '@angular/core';
 
 import { CAUSE_LABELS } from '../../core/models/reconciliation.model';
 import { ReconciliationStore } from '../../core/services/reconciliation.store';
@@ -58,14 +58,19 @@ import { ReconciliationLayoutComponent } from '../../templates/reconciliation-la
         <app-summary-panel
           [summary]="store.summary()"
           [loading]="store.loading()"
+          [skeleton]="store.showSkeleton()"
           [activeCause]="store.causeFilter()"
           (causeToggle)="store.toggleCause($event)"
         />
 
         <app-results-table
           [hasResult]="!!store.result()"
-          [results]="store.filteredResults()"
+          [results]="store.pagedResults()"
+          [shown]="store.filteredResults().length"
           [total]="store.totalResults()"
+          [pagination]="store.pageInfo()"
+          [pageSizeOptions]="store.pageSizeOptions"
+          [skeleton]="store.showSkeleton()"
           [filter]="store.filter()"
           [counts]="store.statusCounts()"
           [search]="store.search()"
@@ -76,6 +81,8 @@ import { ReconciliationLayoutComponent } from '../../templates/reconciliation-la
           (causeClear)="store.clearCause()"
           (clearFilters)="store.clearFilters()"
           (exportCsv)="exportCsv()"
+          (pageChange)="onPageChange($event)"
+          (pageSizeChange)="store.setPageSize($event)"
         />
       </ng-container>
     </app-reconciliation-layout>
@@ -83,6 +90,8 @@ import { ReconciliationLayoutComponent } from '../../templates/reconciliation-la
 })
 export class ReconciliationPageComponent {
   protected readonly store = inject(ReconciliationStore);
+
+  private readonly table = viewChild.required(ResultsTableComponent);
 
   /** UI-only: the user reopened step 1 over an existing result. */
   protected readonly changingFiles = signal(false);
@@ -109,6 +118,13 @@ export class ReconciliationPageComponent {
     this.store.setFile(kind, file);
   }
 
+  /** Paging moves the reader back to the first row of the table. */
+  protected onPageChange(page: number): void {
+    this.store.setPage(page);
+    this.table().scrollToTop();
+  }
+
+  /** Exports every filtered row (all pages), not only the visible page. */
   protected exportCsv(): void {
     const rows = this.store.filteredResults();
     if (!rows.length) return;

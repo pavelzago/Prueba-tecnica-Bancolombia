@@ -4,7 +4,7 @@ import { Subject, of, throwError } from 'rxjs';
 
 import { ReconciliationResponse, ResultadoFactura } from '../models/reconciliation.model';
 import { ReconciliationApiService } from './reconciliation-api.service';
-import { ReconciliationStore } from './reconciliation.store';
+import { ReconciliationStore, SKELETON_DELAY_MS } from './reconciliation.store';
 import { SampleFilesService } from './sample-files.service';
 
 function row(fila: number, estado: ResultadoFactura['estado']): ResultadoFactura {
@@ -71,6 +71,26 @@ const FILTER_RESPONSE: ReconciliationResponse = {
     }),
   ],
 };
+
+/** n rows: odd filas are inconsistent; every 10th concept is "Consultoría". */
+function bigResponse(n: number): ReconciliationResponse {
+  const results = Array.from({ length: n }, (_, i) =>
+    withRow(row(i + 1, i % 2 ? 'Con inconsistencia' : 'Correcta'), {
+      concepto: i % 10 === 0 ? 'Consultoría' : 'Servicio',
+    }),
+  );
+  const bad = results.filter((r) => r.estado !== 'Correcta').length;
+  return {
+    summary: {
+      total_facturas: n,
+      correctas: n - bad,
+      con_inconsistencia: bad,
+      total_registros_contables: n,
+      por_causa: [],
+    },
+    results,
+  };
+}
 
 const RESPONSE: ReconciliationResponse = {
   summary: {
@@ -282,5 +302,171 @@ describe('ReconciliationStore', () => {
     expect(store.loading()).toBe(false);
     expect(store.error()?.message).toContain('archivos de ejemplo');
     expect(api.reconcile).not.toHaveBeenCalled();
+  });
+
+  describe('pagination', () => {
+    const filas = () => store.pagedResults().map((r) => r.fila);
+
+    beforeEach(() => {
+      api.reconcile.mockReturnValue(of(bigResponse(120)));
+      store.setFile('invoices', invoices);
+      store.setFile('ledger', ledger);
+      store.process();
+    });
+
+    it('slices the filtered rows into pages of 50 by default', () => {
+      expect(store.pageSize()).toBe(50);
+      expect(store.totalPages()).toBe(3);
+      expect(store.page()).toBe(1);
+      expect(filas()).toEqual(Array.from({ length: 50 }, (_, i) => i + 1));
+      expect(store.pageRange()).toEqual({ from: 1, to: 50 });
+
+      store.setPage(3);
+      expect(filas()).toEqual(Array.from({ length: 20 }, (_, i) => i + 101));
+      expect(store.pageRange()).toEqual({ from: 101, to: 120 });
+      expect(store.pageInfo()).toEqual({ page: 3, pageSize: 50, totalPages: 3, from: 101, to: 120 });
+    });
+
+    it('clamps requested pages to the valid range', () => {
+      store.setPage(99);
+      expect(store.page()).toBe(3);
+      store.setPage(0);
+      expect(store.page()).toBe(1);
+    });
+
+    it('counters, "shown" and the CSV source still cover every filtered row', () => {
+      store.setFilter('Correcta');
+      expect(store.filteredResults()).toHaveLength(60);
+      expect(store.pagedResults()).toHaveLength(50);
+      expect(store.statusCounts()).toEqual({ all: 120, correct: 60, inconsistent: 60 });
+    });
+
+    it.each([
+      ['status filter', () => store.setFilter('Con inconsistencia')],
+      ['search', () => store.setSearch('fac')],
+      ['cause', () => store.toggleCause('IVA_DIFERENTE')],
+      ['clearing the cause', () => store.clearCause()],
+      ['clearing filters', () => store.clearFilters()],
+      ['a new result', () => store.process()],
+    ])('goes back to page 1 on %s', (_label, action) => {
+      store.setPage(2);
+      expect(store.page()).toBe(2);
+      action();
+      expect(store.page()).toBe(1);
+    });
+
+    it('adjusts the page when the filtered rows shrink below it', () => {
+      store.setPage(3);
+      // 12 rows match "Consultoría": a single page remains.
+      store.setSearch('consultoria');
+      expect(store.totalPages()).toBe(1);
+      expect(store.page()).toBe(1);
+      expect(store.pagedResults()).toHaveLength(12);
+
+      store.setSearch('no-existe');
+      expect(store.totalPages()).toBe(1);
+      expect(store.page()).toBe(1);
+      expect(store.pagedResults()).toEqual([]);
+      expect(store.pageRange()).toEqual({ from: 0, to: 0 });
+    });
+
+    it('changing the page size keeps the first visible row on screen', () => {
+      store.setPage(2); // rows 51–100
+      store.setPageSize(25);
+      expect(store.pageSize()).toBe(25);
+      expect(store.totalPages()).toBe(5);
+      expect(store.page()).toBe(3); // rows 51–75
+      expect(store.pageRange()).toEqual({ from: 51, to: 75 });
+
+      store.setPageSize(100);
+      expect(store.page()).toBe(1);
+      expect(store.pageRange()).toEqual({ from: 1, to: 100 });
+
+      store.setPageSize(7); // not an offered option: ignored
+      expect(store.pageSize()).toBe(100);
+    });
+  });
+
+  describe('search index', () => {
+    afterEach(() => vi.restoreAllMocks());
+
+    it('normalizes each row once per result, not on every search', () => {
+      api.reconcile.mockReturnValue(of(FILTER_RESPONSE));
+      store.setFile('invoices', invoices);
+      store.setFile('ledger', ledger);
+      store.process();
+      const normalizeSpy = vi.spyOn(String.prototype, 'normalize');
+
+      store.setSearch('CONSULTORÍA');
+      expect(store.filteredResults().map((r) => r.fila)).toEqual([2, 4]);
+      const firstPass = normalizeSpy.mock.calls.length;
+      expect(firstPass).toBeGreaterThan(4); // index built: one call per non-null field + the term
+
+      normalizeSpy.mockClear();
+      store.setSearch('técnico');
+      expect(store.filteredResults().map((r) => r.fila)).toEqual([3]);
+      store.setSearch('Fac-0004');
+      expect(store.filteredResults().map((r) => r.fila)).toEqual([5]);
+      expect(normalizeSpy).toHaveBeenCalledTimes(2); // only the two terms
+    });
+
+    it('does not match a term spanning two different fields', () => {
+      api.reconcile.mockReturnValue(of(FILTER_RESPONSE));
+      store.setFile('invoices', invoices);
+      store.setFile('ledger', ledger);
+      store.process();
+      store.setSearch('0002900');
+      expect(store.filteredResults()).toEqual([]);
+    });
+  });
+
+  describe('skeleton delay', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+      store.setFile('invoices', invoices);
+      store.setFile('ledger', ledger);
+    });
+    afterEach(() => vi.useRealTimers());
+
+    it('shows the skeleton only after the load lasts more than the delay', () => {
+      const pending = new Subject<ReconciliationResponse>();
+      api.reconcile.mockReturnValue(pending);
+      store.process();
+
+      expect(store.loading()).toBe(true);
+      vi.advanceTimersByTime(SKELETON_DELAY_MS - 1);
+      expect(store.showSkeleton()).toBe(false);
+      vi.advanceTimersByTime(1);
+      expect(store.showSkeleton()).toBe(true);
+
+      pending.next(RESPONSE);
+      pending.complete();
+      expect(store.showSkeleton()).toBe(false);
+      expect(store.loading()).toBe(false);
+    });
+
+    it('never shows it for a fast load (no flash)', () => {
+      const pending = new Subject<ReconciliationResponse>();
+      api.reconcile.mockReturnValue(pending);
+      store.process();
+
+      vi.advanceTimersByTime(120);
+      pending.next(RESPONSE);
+      pending.complete();
+      vi.advanceTimersByTime(SKELETON_DELAY_MS * 2);
+      expect(store.showSkeleton()).toBe(false);
+    });
+
+    it('hides it when the load fails', () => {
+      const pending = new Subject<ReconciliationResponse>();
+      api.reconcile.mockReturnValue(pending);
+      store.process();
+      vi.advanceTimersByTime(SKELETON_DELAY_MS);
+      expect(store.showSkeleton()).toBe(true);
+
+      pending.error(new HttpErrorResponse({ status: 500 }));
+      expect(store.showSkeleton()).toBe(false);
+      expect(store.error()).not.toBeNull();
+    });
   });
 });

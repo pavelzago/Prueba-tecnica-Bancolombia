@@ -192,3 +192,68 @@
 .results__empty {
   margin-top: var(--space-2);
 }
+
+.results__pager {
+  margin-top: var(--space-3);
+}
+
+/* Silhouette of toolbar + 8 rows while a slow load is in progress. */
+.table-skeleton {
+  margin-top: var(--space-4);
+}
+
+.table-skeleton__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+.table-skeleton__export {
+  margin-left: auto;
+}
+
+.table-skeleton__grid {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.table-skeleton__row {
+  display: grid;
+  grid-template-columns: 3rem 1.2fr 1fr 1.6fr 1fr 1fr 7rem;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: 2.75rem;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+
+  &:last-child {
+    border-bottom: 0;
+  }
+
+  &--head {
+    min-height: 2.25rem;
+    background: var(--color-surface-sunken);
+    border-bottom-color: var(--color-border-strong);
+  }
+}
+
+.table-skeleton__num {
+  justify-self: end;
+}
+
+@media (max-width: 40rem) {
+  .table-skeleton__row {
+    grid-template-columns: 2rem 1fr 1fr 5rem;
+
+    > :nth-child(n + 4):not(:last-child) {
+      display: none;
+    }
+  }
+}
+
+.table-skeleton__row--head app-skeleton {
+  animation: none;
+  background: var(--color-border);
+}

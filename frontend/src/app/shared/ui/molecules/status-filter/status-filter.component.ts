@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
 
 export interface FilterOption<T extends string = string> {
   value: T;
@@ -10,6 +11,7 @@ export interface FilterOption<T extends string = string> {
 @Component({
   selector: 'app-status-filter',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [DecimalPipe],
   template: `
     <div class="seg" role="group" [attr.aria-label]="ariaLabel()">
       @for (option of options(); track option.value) {
@@ -21,7 +23,7 @@ export interface FilterOption<T extends string = string> {
           (click)="valueChange.emit(option.value)"
         >
           <span>{{ option.label }}</span>
-          <span class="seg__count">{{ option.count }}</span>
+          <span class="seg__count">{{ option.count | number }}</span>
         </button>
       }
     </div>

@@ -1,4 +1,4 @@
-<section class="panel" aria-labelledby="summary-title">
+<section class="panel" aria-labelledby="summary-title" [attr.aria-busy]="skeleton() || null">
   <app-step-header
     [number]="2"
     title="Resumen"
@@ -12,9 +12,14 @@
         <app-stat-card
           label="Facturas procesadas"
           [value]="s.total_facturas"
-          [caption]="s.total_registros_contables + ' registros contables leídos'"
+          [caption]="(s.total_registros_contables | number) + ' registros contables leídos'"
         />
-        <app-stat-card label="Correctas" tone="success" [value]="s.correctas" [share]="ratio(s.correctas)" />
+        <app-stat-card
+          label="Correctas"
+          tone="success"
+          [value]="s.correctas"
+          [share]="ratio(s.correctas)"
+        />
         <app-stat-card
           label="Con inconsistencia"
           tone="danger"
@@ -33,7 +38,9 @@
         <div class="summary__causes-head">
           <h3 class="summary__subtitle">Inconsistencias por causa</h3>
           @if (s.por_causa.length) {
-            <p class="summary__note">Haz clic en una causa para ver solo esas facturas. Una factura puede tener varias.</p>
+            <p class="summary__note">
+              Haz clic en una causa para ver solo esas facturas. Una factura puede tener varias.
+            </p>
           }
         </div>
         @if (s.por_causa.length) {
@@ -51,14 +58,44 @@
             }
           </ul>
         } @else {
-          <p class="summary__note">Todas las facturas cuadran: no se encontraron inconsistencias.</p>
+          <p class="summary__note">
+            Todas las facturas cuadran: no se encontraron inconsistencias.
+          </p>
         }
       </div>
     </div>
   } @else if (loading()) {
-    <app-empty-state class="summary__empty" icon="chart" title="Procesando los archivos…">
-      <app-spinner label="Validando facturas contra la contabilidad…" />
-    </app-empty-state>
+    <!-- One persistent status message; the silhouette appears only if the load is slow (no flash). -->
+    <p class="summary__busy" [class.visually-hidden]="!skeleton()" role="status">
+      Procesando conciliación…
+    </p>
+    @if (skeleton()) {
+      <div class="summary summary--skeleton" aria-hidden="true">
+        <div class="summary__figures">
+          @for (card of [1, 2, 3]; track card) {
+            <div class="stat-skeleton">
+              <app-skeleton width="8rem" height="0.75rem" />
+              <app-skeleton [width]="card === 1 ? '5.5rem' : '7rem'" height="1.75rem" />
+            </div>
+          }
+          <app-skeleton class="summary__split-skeleton" height="0.375rem" />
+        </div>
+        <div class="summary__causes">
+          <div class="summary__causes-head">
+            <app-skeleton width="11rem" height="0.875rem" />
+          </div>
+          <div class="causes causes--skeleton">
+            @for (width of causeSkeletonWidths; track $index) {
+              <div class="cause-skeleton">
+                <app-skeleton [width]="width.label" />
+                <app-skeleton [width]="width.bar" height="0.625rem" />
+                <app-skeleton width="1.5rem" class="cause-skeleton__count" />
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    }
   } @else {
     <app-empty-state
       class="summary__empty"

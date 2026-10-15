@@ -182,6 +182,20 @@ La pantalla sigue tres pasos: **1. Cargar archivos** (se compacta en una línea 
 - **Valores reportado vs calculado**: si el IVA, la retención o el total no cuadran, la tabla muestra el valor reportado tachado, el calculado y la diferencia.
 - **Filtro por estado**: Todas / Correctas / Con inconsistencia.
 - **Exportar CSV** de las filas filtradas, con separador `;`, coma decimal y BOM UTF-8 para que Excel en español lo abra con acentos y columnas correctas.
+- **Paginación** del detalle (25 / 50 / 100 filas por página): filtros, búsqueda, contadores y exportación operan siempre sobre todas las facturas; solo se pinta la página actual.
+- **Skeleton de carga** del resumen y la tabla mientras se procesa (solo si tarda más de ~300 ms, para no parpadear con archivos pequeños).
+
+### 4.5 Volumen y rendimiento
+
+El límite por archivo es 2 MB (`MAX_FILE_SIZE_BYTES`), unas **20.000 facturas**. Medición del backend con archivos sintéticos (Python 3.10, equipo de desarrollo):
+
+| Facturas | Tamaño CSV | Respuesta del backend | JSON devuelto |
+|---|---|---|---|
+| 1.000 | 81 KB | ~90 ms | 0,5 MB |
+| 5.000 | 406 KB | ~270 ms | 2,3 MB |
+| 20.000 | 1,6 MB | ~1,4 s | 9,2 MB |
+
+El costo dominante en volúmenes altos era pintar la tabla en el navegador, no el cálculo; por eso el detalle se pagina en el cliente y la búsqueda usa texto precalculado con una pausa de ~200 ms entre teclas. Para volúmenes mayores (siguiente paso de producción) convendría paginar en el servidor, lo que implica persistir cada conciliación.
 - **Tema oscuro** automático según la preferencia del sistema operativo.
 
 ---
@@ -193,7 +207,7 @@ La pantalla sigue tres pasos: **1. Cargar archivos** (se compacta en una línea 
 cd backend
 .venv/bin/pytest -q          # PowerShell: .venv\Scripts\pytest -q
 
-# Frontend: 18 tests con Vitest (servicio HTTP, store con filtros/búsqueda y exportación CSV)
+# Frontend: 38 tests con Vitest (servicio HTTP, store con filtros, búsqueda y paginación, skeleton, debounce y exportación CSV)
 cd frontend
 npx ng test --watch=false
 ```

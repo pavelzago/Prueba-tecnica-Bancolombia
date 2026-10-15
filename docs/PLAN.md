@@ -53,6 +53,7 @@
 
 ### Extras (solo si sobra tiempo)
 - [x] Rediseño UX/UI ("libro de conciliación"): pasos 1-2-3, archivos de ejemplo, causas clicables, tema oscuro, Plex Sans/Mono
+- [x] Volumen: paginación en cliente, búsqueda precalculada con debounce y skeleton (20.000 facturas: tabla de ~495k a ~1,3k nodos DOM)
 - [x] Exportar resultados a CSV
 - [x] Búsqueda por id/NIT y filtro por causa
 - [ ] Posibles duplicados por contenido (FAC-0007 ↔ FAC-0045)

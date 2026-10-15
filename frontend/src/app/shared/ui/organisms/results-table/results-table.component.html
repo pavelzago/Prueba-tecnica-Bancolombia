@@ -1,10 +1,10 @@
-<section class="panel" aria-labelledby="results-title">
+<section class="panel" aria-labelledby="results-title" [attr.aria-busy]="skeleton() || null">
   <app-step-header
     [number]="3"
     title="Detalle por factura"
     titleId="results-title"
     [state]="hasResult() ? 'current' : 'pending'"
-    [description]="hasResult() ? '' : 'Disponible después de procesar: cada factura con su estado, sus causas y la opción de filtrar, buscar y exportar a CSV.'"
+    [description]="hasResult() || skeleton() ? '' : 'Disponible después de procesar: cada factura con su estado, sus causas y la opción de filtrar, buscar y exportar a CSV.'"
   />
 
   @if (hasResult()) {
@@ -14,8 +14,10 @@
       [counts]="counts()"
       [search]="search()"
       [causeLabel]="causeLabel()"
-      [shown]="results().length"
+      [shown]="shown()"
       [total]="total()"
+      [rangeFrom]="pagination()?.from ?? 1"
+      [rangeTo]="pagination()?.to ?? shown()"
       [hasActiveFilters]="hasActiveFilters()"
       (filterChange)="filterChange.emit($event)"
       (searchChange)="searchChange.emit($event)"
@@ -25,7 +27,7 @@
     />
 
     @if (results().length) {
-      <div class="table-wrap" role="region" aria-labelledby="results-title" tabindex="0">
+      <div #tableWrap class="table-wrap" role="region" aria-labelledby="results-title" tabindex="0">
         <table class="table">
           <thead>
             <tr>
@@ -127,6 +129,21 @@
           </tbody>
         </table>
       </div>
+
+      @let p = pagination();
+      @if (p && p.totalPages > 1) {
+        <app-paginator
+          class="results__pager"
+          selectId="results-page-size"
+          ariaLabel="Paginación de facturas"
+          [page]="p.page"
+          [totalPages]="p.totalPages"
+          [pageSize]="p.pageSize"
+          [pageSizeOptions]="pageSizeOptions()"
+          (pageChange)="pageChange.emit($event)"
+          (pageSizeChange)="pageSizeChange.emit($event)"
+        />
+      }
     } @else {
       <app-empty-state
         class="results__empty"
@@ -137,5 +154,32 @@
         <app-button variant="secondary" size="sm" (pressed)="clearFilters.emit()">Limpiar filtros</app-button>
       </app-empty-state>
     }
+  } @else if (skeleton()) {
+    <p class="visually-hidden">Procesando conciliación…</p>
+    <div class="table-skeleton" aria-hidden="true">
+      <div class="table-skeleton__toolbar">
+        <app-skeleton width="19rem" height="2.25rem" />
+        <app-skeleton width="16rem" height="2.25rem" />
+        <app-skeleton class="table-skeleton__export" width="8.5rem" height="2.25rem" />
+      </div>
+      <div class="table-skeleton__grid">
+        <div class="table-skeleton__row table-skeleton__row--head">
+          @for (cell of [1, 2, 3, 4, 5, 6, 7]; track cell) {
+            <app-skeleton width="60%" height="0.625rem" [class.table-skeleton__num]="cell === 5 || cell === 6" />
+          }
+        </div>
+        @for (row of skeletonRows; track row) {
+          <div class="table-skeleton__row">
+            <app-skeleton width="1.5rem" />
+            <app-skeleton [width]="row % 2 ? '70%' : '85%'" />
+            <app-skeleton width="80%" />
+            <app-skeleton [width]="row % 3 ? '90%' : '60%'" />
+            <app-skeleton width="75%" class="table-skeleton__num" />
+            <app-skeleton width="65%" class="table-skeleton__num" />
+            <app-skeleton width="5.5rem" height="1.25rem" />
+          </div>
+        }
+      </div>
+    </div>
   }
 </section>

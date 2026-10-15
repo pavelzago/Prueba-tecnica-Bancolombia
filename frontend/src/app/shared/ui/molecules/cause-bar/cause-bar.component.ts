@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
 
 /**
  * One cause as a clickable horizontal bar. Width is drawn to scale:
@@ -7,6 +8,7 @@ import { ChangeDetectionStrategy, Component, computed, input, output } from '@an
 @Component({
   selector: 'app-cause-bar',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [DecimalPipe],
   template: `
     <button
       type="button"
@@ -20,14 +22,14 @@ import { ChangeDetectionStrategy, Component, computed, input, output } from '@an
       <span class="cause__track" aria-hidden="true">
         <span class="cause__fill" [style.width.%]="width()"></span>
       </span>
-      <span class="cause__count">{{ count() }}<span class="visually-hidden"> facturas</span></span>
+      <span class="cause__count">{{ count() | number }}<span class="visually-hidden"> facturas</span></span>
     </button>
   `,
   styles: `
     :host { display: block; }
     .cause {
       display: grid;
-      grid-template-columns: minmax(9rem, 15rem) 1fr 2.5rem;
+      grid-template-columns: minmax(9rem, 15rem) 1fr 3.5rem;
       align-items: center;
       gap: var(--space-3);
       width: 100%;
@@ -55,7 +57,7 @@ import { ChangeDetectionStrategy, Component, computed, input, output } from '@an
     .cause--active:hover .cause__fill { background: var(--color-ink); }
     .cause__count { font-family: var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; font-weight: var(--weight-medium); }
     @media (max-width: 30rem) {
-      .cause { grid-template-columns: 1fr 2.5rem; row-gap: var(--space-1); }
+      .cause { grid-template-columns: 1fr 3.5rem; row-gap: var(--space-1); }
       .cause__track { grid-column: 1 / -1; grid-row: 2; }
     }
   `,

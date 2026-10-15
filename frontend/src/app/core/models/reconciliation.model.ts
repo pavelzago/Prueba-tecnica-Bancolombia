@@ -72,6 +72,16 @@ export interface ErrorResponse {
 /** UI-only: status filter applied client side. */
 export type StatusFilter = 'all' | EstadoFactura;
 
+/** UI-only: client-side pagination state of the detail table (1-based, inclusive range). */
+export interface PageInfo {
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  /** First and last row number shown (0–0 when there are no rows). */
+  from: number;
+  to: number;
+}
+
 /** UI-only: which of the two input files is being set. */
 export type FileKind = 'invoices' | 'ledger';
 
