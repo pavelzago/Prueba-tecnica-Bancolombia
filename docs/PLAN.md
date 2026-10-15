@@ -37,7 +37,7 @@
 ### Fase 4 — Integración y QA · `qa-reviewer` · 20 min
 - [x] Reporte de hallazgos
 - [x] Hallazgos Bloqueante/Alta corregidos por el agente dueño (no hubo; se corrigieron Media y Bajas de código)
-- [ ] Flujo E2E manual en el navegador (datos reales + errores + backend apagado) — flujo principal 50/28/22 OK (15-oct); faltan errores y backend apagado
+- [x] Flujo E2E manual en el navegador (datos reales, filtro y errores validados por el candidato, 15-oct)
 
 ### Fase 5 — Documentación · `docs-writer` · 25 min
 - [ ] `README.md` reproducible
