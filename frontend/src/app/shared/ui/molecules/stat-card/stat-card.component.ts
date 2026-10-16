@@ -31,9 +31,7 @@ const ICONS: Record<StatTone, IconName> = { neutral: 'file', success: 'check', d
   `,
   styles: `
     :host { display: block; min-width: 0; }
-    .stat { padding: var(--space-3) 0 var(--space-3) var(--space-4); border-left: 3px solid var(--color-border-strong); }
-    .stat--success { border-left-color: var(--color-success); }
-    .stat--danger { border-left-color: var(--color-danger); }
+    .stat { padding-block: var(--space-3); }
     .stat__label {
       display: flex;
       align-items: center;
