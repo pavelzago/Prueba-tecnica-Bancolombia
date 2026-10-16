@@ -26,12 +26,6 @@
           [value]="s.con_inconsistencia"
           [share]="ratio(s.con_inconsistencia)"
         />
-        @if (s.total_facturas) {
-          <div class="summary__split" aria-hidden="true">
-            <span class="summary__split-ok" [style.flex-grow]="s.correctas"></span>
-            <span class="summary__split-bad" [style.flex-grow]="s.con_inconsistencia"></span>
-          </div>
-        }
       </div>
 
       <div class="summary__causes">
@@ -78,7 +72,6 @@
               <app-skeleton [width]="card === 1 ? '5.5rem' : '7rem'" height="1.75rem" />
             </div>
           }
-          <app-skeleton class="summary__split-skeleton" height="0.375rem" />
         </div>
         <div class="summary__causes">
           <div class="summary__causes-head">
