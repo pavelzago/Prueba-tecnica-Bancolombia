@@ -1,11 +1,15 @@
 import { HttpErrorResponse } from '@angular/common/http';
 
-import { ErrorResponse } from '../models/reconciliation.model';
+import { ErrorResponse, FileKind } from '../models/reconciliation.model';
 
 export interface UiError {
   message: string;
   details: string[];
+  /** File the error is about (marks that field as invalid), or null. */
+  file: FileKind | null;
 }
+
+const FILE_KIND_BY_FIELD: Record<string, FileKind> = { facturas: 'invoices', contabilidad: 'ledger' };
 
 const FALLBACK_BY_STATUS: Record<number, string> = {
   0: 'No fue posible conectar con el servidor. Verifica que el backend esté en ejecución e inténtalo de nuevo.',
@@ -29,13 +33,14 @@ function isErrorResponse(body: unknown): body is ErrorResponse {
 /** Maps any error to a user-facing Spanish message. The backend `message` wins when present. */
 export function mapHttpError(error: unknown): UiError {
   if (!(error instanceof HttpErrorResponse)) {
-    return { message: GENERIC_MESSAGE, details: [] };
+    return { message: GENERIC_MESSAGE, details: [], file: null };
   }
   if (error.status !== 0 && isErrorResponse(error.error)) {
     const details = Array.isArray(error.error.details)
       ? error.error.details.filter((d): d is string => typeof d === 'string')
       : [];
-    return { message: error.error.message, details };
+    const file = FILE_KIND_BY_FIELD[error.error.file ?? ''] ?? null;
+    return { message: error.error.message, details, file };
   }
-  return { message: FALLBACK_BY_STATUS[error.status] ?? GENERIC_MESSAGE, details: [] };
+  return { message: FALLBACK_BY_STATUS[error.status] ?? GENERIC_MESSAGE, details: [], file: null };
 }

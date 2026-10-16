@@ -2,9 +2,12 @@ import { ChangeDetectionStrategy, Component, computed, input, output, signal } f
 import { DecimalPipe } from '@angular/common';
 
 import { FileInputComponent } from '../../atoms/file-input/file-input.component';
-import { IconComponent } from '../../atoms/icon/icon.component';
+import { IconComponent, IconName } from '../../atoms/icon/icon.component';
 
-/** Label + file input + selected file name, with drag & drop support. */
+/**
+ * Label + file input + selected file name, with drag & drop support.
+ * `invalid` (the backend rejected this file) swaps the check for an X.
+ */
 @Component({
   selector: 'app-file-drop-field',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -13,13 +16,14 @@ import { IconComponent } from '../../atoms/icon/icon.component';
     <div
       class="field"
       [class.field--dragging]="dragging()"
-      [class.field--filled]="!!file()"
+      [class.field--filled]="!!file() && !invalid()"
+      [class.field--invalid]="!!file() && invalid()"
       (dragover)="onDragOver($event)"
       (dragleave)="dragging.set(false)"
       (drop)="onDrop($event)"
     >
       <span class="field__mark" aria-hidden="true">
-        <app-icon [name]="file() ? 'check' : 'file'" [size]="20" />
+        <app-icon [name]="markIcon()" [size]="20" />
       </span>
       <div class="field__body">
         <label class="field__label" [for]="inputId()">{{ label() }}</label>
@@ -28,6 +32,9 @@ import { IconComponent } from '../../atoms/icon/icon.component';
           @if (file(); as f) {
             <span class="field__file">{{ f.name }}</span>
             <span class="field__size">{{ f.size / 1024 | number: '1.0-1' }} KB</span>
+            @if (invalid()) {
+              <span class="field__error">Archivo con error, cámbialo</span>
+            }
           } @else {
             Arrástralo aquí o selecciónalo.
           }
@@ -51,9 +58,14 @@ export class FileDropFieldComponent {
   readonly hint = input('');
   readonly file = input<File | null>(null);
   readonly disabled = input(false);
+  readonly invalid = input(false);
   readonly fileChange = output<File | null>();
 
   protected readonly dragging = signal(false);
+  protected readonly markIcon = computed<IconName>(() => {
+    if (!this.file()) return 'file';
+    return this.invalid() ? 'close' : 'check';
+  });
   protected readonly hintId = computed(() => `${this.inputId()}-hint`);
   protected readonly statusId = computed(() => `${this.inputId()}-status`);
 

@@ -124,10 +124,15 @@
   --color-bar-track: #2c2a23;
 }
 
+// Theme: "system" (no data-theme) follows the OS; data-theme="light"/"dark" forces one.
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='light']) {
     @include dark-tokens;
   }
+}
+
+:root[data-theme='dark'] {
+  @include dark-tokens;
 }
 
 *,

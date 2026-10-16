@@ -2,8 +2,11 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, v
 
 import { CAUSE_LABELS } from '../../core/models/reconciliation.model';
 import { ReconciliationStore } from '../../core/services/reconciliation.store';
+import { ThemeService } from '../../core/services/theme.service';
 import { buildResultsCsv, downloadTextFile } from '../../core/utils/csv-export';
 import { AlertComponent } from '../../shared/ui/atoms/alert/alert.component';
+import { SelectOption } from '../../shared/ui/atoms/select-field/select-field.component';
+import { ThemeSwitchComponent } from '../../shared/ui/molecules/theme-switch/theme-switch.component';
 import { ResultsTableComponent } from '../../shared/ui/organisms/results-table/results-table.component';
 import { SummaryPanelComponent } from '../../shared/ui/organisms/summary-panel/summary-panel.component';
 import { FileChangeEvent, UploadPanelComponent } from '../../shared/ui/organisms/upload-panel/upload-panel.component';
@@ -19,12 +22,15 @@ import { ReconciliationLayoutComponent } from '../../templates/reconciliation-la
     UploadPanelComponent,
     SummaryPanelComponent,
     ResultsTableComponent,
+    ThemeSwitchComponent,
   ],
   template: `
     <app-reconciliation-layout
       title="Conciliador de facturas y retenciones"
       subtitle="Cruza las facturas de proveedores con su registro contable y encuentra cuáles no cuadran y por qué."
     >
+      <app-theme-switch layoutActions [value]="theme.preference()" (valueChange)="theme.setPreference($event)" />
+
       <ng-container layoutAlert>
         @if (store.error(); as error) {
           <app-alert
@@ -41,6 +47,7 @@ import { ReconciliationLayoutComponent } from '../../templates/reconciliation-la
       <app-upload-panel
         layoutUpload
         [invoicesFile]="store.invoicesFile()"
+        [invalidFile]="store.invalidFile()"
         [ledgerFile]="store.ledgerFile()"
         [loading]="store.loading()"
         [canProcess]="store.canProcess()"
@@ -74,11 +81,12 @@ import { ReconciliationLayoutComponent } from '../../templates/reconciliation-la
           [filter]="store.filter()"
           [counts]="store.statusCounts()"
           [search]="store.search()"
-          [causeLabel]="causeLabel()"
+          [causeOptions]="causeOptions()"
+          [cause]="store.causeFilter()"
           [hasActiveFilters]="store.hasActiveFilters()"
           (filterChange)="store.setFilter($event)"
           (searchChange)="store.setSearch($event)"
-          (causeClear)="store.clearCause()"
+          (causeChange)="store.setCause($event)"
           (clearFilters)="store.clearFilters()"
           (exportCsv)="exportCsv()"
           (pageChange)="onPageChange($event)"
@@ -90,6 +98,7 @@ import { ReconciliationLayoutComponent } from '../../templates/reconciliation-la
 })
 export class ReconciliationPageComponent {
   protected readonly store = inject(ReconciliationStore);
+  protected readonly theme = inject(ThemeService);
 
   private readonly table = viewChild.required(ResultsTableComponent);
 
@@ -100,10 +109,12 @@ export class ReconciliationPageComponent {
     () => !!this.store.result() && !this.changingFiles() && !this.store.loading(),
   );
 
-  protected readonly causeLabel = computed(() => {
-    const cause = this.store.causeFilter();
-    return cause ? CAUSE_LABELS[cause] : null;
-  });
+  /** Error types present in the result, with how many invoices have each. */
+  protected readonly causeOptions = computed<SelectOption[]>(() =>
+    (this.store.summary()?.por_causa ?? [])
+      .filter((c) => c.cantidad > 0)
+      .map((c) => ({ value: c.codigo, label: `${CAUSE_LABELS[c.codigo]} (${c.cantidad})` })),
+  );
 
   constructor() {
     // A new successful run collapses step 1 back to its one-line summary.

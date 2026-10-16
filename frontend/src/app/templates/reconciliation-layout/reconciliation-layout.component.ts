@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
-/** Page skeleton: header band + content slots (alert, step 1, steps 2–3). Knows nothing about data. */
+/** Page skeleton: header band (+ actions slot) + content slots (alert, step 1, steps 2–3). Knows nothing about data. */
 @Component({
   selector: 'app-reconciliation-layout',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -8,11 +8,16 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
     <a class="skip-link" href="#main-content">Saltar al contenido</a>
     <header class="layout__header">
       <div class="layout__container layout__header-inner">
-        <p class="layout__eyebrow">Gerencia de Evolución Contable y Tributaria</p>
-        <h1 class="layout__title">{{ title() }}</h1>
-        @if (subtitle()) {
-          <p class="layout__subtitle">{{ subtitle() }}</p>
-        }
+        <div class="layout__heading">
+          <p class="layout__eyebrow">Gerencia de Evolución Contable y Tributaria</p>
+          <h1 class="layout__title">{{ title() }}</h1>
+          @if (subtitle()) {
+            <p class="layout__subtitle">{{ subtitle() }}</p>
+          }
+        </div>
+        <div class="layout__actions">
+          <ng-content select="[layoutActions]" />
+        </div>
       </div>
     </header>
     <main id="main-content" class="layout__container layout__main" tabindex="-1">
@@ -45,7 +50,15 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
       color: var(--color-header-ink);
       border-bottom: 4px solid var(--color-accent);
     }
-    .layout__header-inner { padding-block: var(--space-5); }
+    .layout__header-inner {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: var(--space-3) var(--space-5);
+      padding-block: var(--space-5);
+    }
+    .layout__heading { min-width: 0; flex: 1 1 24rem; }
     .layout__eyebrow {
       margin: 0;
       font-size: var(--text-xs);

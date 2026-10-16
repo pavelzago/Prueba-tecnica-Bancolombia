@@ -11,10 +11,11 @@ Prototipo web que carga `facturas.csv` y `contabilidad.csv`, aplica reglas conta
 
 - **Carga de archivos** con validación: extensión, archivo vacío, columnas obligatorias y tamaño máximo de 2 MB.
 - **Resumen**: total de facturas, correctas, con inconsistencia y desglose por causa. Al pulsar una causa, la tabla se filtra.
-- **Detalle por factura** con filtro por estado, buscador (por id, NIT o concepto) y paginación. Cuando un valor no cuadra, se muestra el **reportado frente al calculado**.
+- **Detalle por factura** con filtro por estado y por tipo de error, buscador (por id, NIT o concepto) y paginación. Cuando un valor no cuadra, se muestra el **reportado frente al calculado**.
 - **Exportar a CSV** las filas filtradas, en un formato que Excel en español abre bien.
 - **Probar con archivos de ejemplo**: un botón que procesa los CSV de `test-data/` sin tener que buscarlos en disco.
-- **Estados de carga y error**: skeleton mientras se procesa y mensajes claros si el archivo es inválido o el servidor no responde.
+- **Estados de carga y error**: skeleton mientras se procesa y mensajes claros si un archivo es inválido (el archivo rechazado se marca con una ✕) o si el servidor no responde.
+- **Tema claro, oscuro o del sistema**, con la elección recordada en el navegador.
 
 ## 🛠 Stack técnico
 
@@ -120,7 +121,7 @@ La tabla cuenta facturas, no ocurrencias. Como una factura puede tener varias ca
 
 ```bash
 cd backend && .venv/bin/pytest -q            # 64 tests: reglas, lector CSV y API (test golden 50/28/22)
-cd frontend && npx ng test --watch=false     # 38 tests: servicio HTTP, store, filtros, paginación y exportación
+cd frontend && npx ng test --watch=false     # 43 tests: servicio HTTP, store, filtros, paginación, tema y exportación
 ```
 
 ## 📐 Reglas de negocio y supuestos

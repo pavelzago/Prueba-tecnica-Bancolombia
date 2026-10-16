@@ -67,6 +67,8 @@ export interface ErrorResponse {
   code: string;
   message: string;
   details: string[];
+  /** Form field the error refers to, when it is about one file. */
+  file?: 'facturas' | 'contabilidad' | null;
 }
 
 /** UI-only: status filter applied client side. */

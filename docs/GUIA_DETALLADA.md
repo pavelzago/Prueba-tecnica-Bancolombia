@@ -119,15 +119,16 @@ La pantalla sigue tres pasos:
 Funciones adicionales:
 
 - **Probar con archivos de ejemplo**: procesa directamente los CSV de ejemplo. Se sirven desde `frontend/public/ejemplos/`, que es una copia idéntica de `test-data/`. Se usa una copia y no un enlace simbólico para que funcione al clonar en Windows.
-- **Causas clicables**: al pulsar una causa del resumen, la tabla muestra solo las facturas que la tienen. El filtro se quita con la × del chip o pulsando la causa otra vez.
+- **Causas clicables**: al pulsar una causa del resumen, la tabla muestra solo las facturas que la tienen. El filtro se quita eligiendo "Todos los tipos de error" o pulsando la causa otra vez.
 - **Filtro por estado**: Todas, Correctas o Con inconsistencia.
+- **Filtro por tipo de error**: un desplegable con las causas presentes en el resultado y cuántas facturas tiene cada una (por ejemplo, "Total diferente (3)"). Se combina con el estado y la búsqueda, y es el mismo filtro que se activa al pulsar una causa en el resumen.
 - **Buscador** por número de factura, NIT o concepto. No distingue mayúsculas ni tildes y espera ~200 ms entre teclas antes de filtrar.
 - **Reportado frente a calculado**: si el IVA, la retención o el total no cuadran, la tabla muestra el valor reportado tachado, el calculado y la diferencia.
 - **Paginación** de 25, 50 o 100 filas. Los filtros, la búsqueda, los contadores y la exportación se aplican siempre a todas las facturas; solo se pinta la página actual.
 - **Exportar CSV** de las filas filtradas, con separador `;`, coma decimal y BOM UTF-8 para que Excel en español lo abra con acentos y columnas correctas. Las celdas que empiezan por `=`, `+`, `-` o `@` se neutralizan para evitar la inyección de fórmulas.
 - **Skeleton de carga** del resumen y la tabla, que solo aparece si el proceso tarda más de ~300 ms; así no parpadea con archivos pequeños.
-- **Mensajes de error** con el texto que devuelve el backend (archivo inválido, columnas faltantes) o un aviso de conexión si el servidor no responde.
-- **Tema oscuro** automático según la preferencia del sistema operativo.
+- **Mensajes de error** con el texto que devuelve el backend (archivo inválido, columnas faltantes) o un aviso de conexión si el servidor no responde. El archivo rechazado se marca en su campo con una ✕ roja y el texto "Archivo con error, cámbialo", en lugar del ✓; la marca desaparece al elegir otro archivo.
+- **Tema claro, oscuro o del sistema**, con un selector en la cabecera. "Sistema" sigue la preferencia del sistema operativo. La elección se guarda en el navegador y se aplica antes de que cargue la aplicación, para que no parpadee.
 
 ---
 
@@ -277,7 +278,7 @@ El contrato completo, con los ejemplos de respuesta y error, está en [`api-cont
 
 Cada elemento de `results` incluye la fila, los datos de la factura, los valores **reportados y calculados** (IVA, retención, total), el valor contabilizado, el número de líneas contables, el estado contable, el estado final y la lista de `inconsistencias` con su `codigo` y una `descripcion` legible.
 
-Todos los errores siguen el formato `{code, message, details}`:
+Todos los errores siguen el formato `{code, message, details, file}`. `file` vale `"facturas"` o `"contabilidad"` cuando el error se refiere a uno de los archivos (la interfaz marca ese campo) y `null` en otro caso:
 
 | HTTP | `code` | Cuándo |
 |---|---|---|
@@ -344,7 +345,7 @@ frontend/src/app/
 cd backend
 .venv/bin/pytest -q          # PowerShell: .venv\Scripts\pytest -q
 
-# Frontend: 38 tests con Vitest
+# Frontend: 43 tests con Vitest
 cd frontend
 npx ng test --watch=false
 ```
@@ -354,7 +355,7 @@ npx ng test --watch=false
 | `backend/tests/test_rules.py` | Cálculo de IVA, retención y total; redondeo `ROUND_HALF_UP`; tolerancia de ±1; duplicados; cruce contable |
 | `backend/tests/test_csv_reader.py` | BOM, columnas faltantes, archivo vacío, extensión y tamaño |
 | `backend/tests/test_api.py` | **Test golden**: procesa `test-data/` y comprueba 50/28/22, el desglose por causa y las causas de facturas representativas. También cubre los errores HTTP y el CORS |
-| Frontend (`*.spec.ts`) | Servicio HTTP (FormData y URL), store (filtros, búsqueda, paginación y skeleton), debounce del buscador y exportación CSV |
+| Frontend (`*.spec.ts`) | Servicio HTTP (FormData y URL), store (filtros por estado y tipo de error, búsqueda, paginación, skeleton y archivo marcado como inválido), debounce del buscador, selector de tema y exportación CSV |
 
 El test golden protege las reglas de negocio de punta a punta: si un cambio altera la clasificación de alguna factura, falla.
 

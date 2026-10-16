@@ -62,6 +62,7 @@ export interface FileChangeEvent {
               label="Facturas de proveedores"
               hint="facturas.csv"
               [file]="invoicesFile()"
+              [invalid]="invalidFile() === 'invoices'"
               [disabled]="loading()"
               (fileChange)="fileChange.emit({ kind: 'invoices', file: $event })"
             />
@@ -70,6 +71,7 @@ export interface FileChangeEvent {
               label="Registros contables"
               hint="contabilidad.csv"
               [file]="ledgerFile()"
+              [invalid]="invalidFile() === 'ledger'"
               [disabled]="loading()"
               (fileChange)="fileChange.emit({ kind: 'ledger', file: $event })"
             />
@@ -139,6 +141,8 @@ export class UploadPanelComponent {
   readonly invoicesFile = input<File | null>(null);
   readonly ledgerFile = input<File | null>(null);
   readonly loading = input(false);
+  /** File the backend rejected: its field shows an X. */
+  readonly invalidFile = input<FileKind | null>(null);
   readonly canProcess = input(false);
   /** Collapsed to one line (after a successful run). */
   readonly compact = input(false);

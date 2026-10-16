@@ -152,7 +152,7 @@ def test_invalid_row_values_become_inconsistencies():
 def assert_error(response, status: int, code: str) -> dict:
     assert response.status_code == status
     body = response.json()
-    assert set(body) == {"code", "message", "details"}
+    assert set(body) == {"code", "message", "details", "file"}
     assert body["code"] == code
     assert isinstance(body["details"], list)
     return body
@@ -163,15 +163,18 @@ def test_missing_columns_returns_422():
     body = assert_error(response, 422, "MISSING_COLUMNS")
     assert body["message"] == "El archivo de facturas no tiene las columnas obligatorias."
     assert body["details"] == ["tarifa_iva", "valor_iva", "tarifa_retencion", "valor_retencion", "total_factura"]
+    assert body["file"] == "facturas"
 
 
 def test_empty_file_returns_400():
     body = assert_error(upload(TEST_DATA / "facturas.csv", ERRORS_DIR / "vacio.csv"), 400, "INVALID_FILE")
     assert "contabilidad" in body["message"]
+    assert body["file"] == "contabilidad"
 
 
 def test_non_csv_extension_returns_400():
-    assert_error(upload(ERRORS_DIR / "archivo.txt", TEST_DATA / "contabilidad.csv"), 400, "INVALID_FILE")
+    body = assert_error(upload(ERRORS_DIR / "archivo.txt", TEST_DATA / "contabilidad.csv"), 400, "INVALID_FILE")
+    assert body["file"] == "facturas"
 
 
 def test_file_too_large_returns_413(monkeypatch: pytest.MonkeyPatch):
@@ -188,6 +191,7 @@ def test_missing_file_returns_422_missing_file():
     response = client.post("/api/reconciliations", files={"facturas": (path.name, path.read_bytes(), "text/csv")})
     body = assert_error(response, 422, "MISSING_FILE")
     assert body["details"] == ["contabilidad"]
+    assert body["file"] == "contabilidad"
 
 
 def test_unexpected_error_returns_500_without_stacktrace_and_with_cors(monkeypatch: pytest.MonkeyPatch):
@@ -209,7 +213,7 @@ def test_unexpected_error_returns_500_without_stacktrace_and_with_cors(monkeypat
 
 
 def test_unknown_route_returns_404_with_error_format():
-    assert_error(client.get("/api/no-existe"), 404, "NOT_FOUND")
+    assert assert_error(client.get("/api/no-existe"), 404, "NOT_FOUND")["file"] is None
 
 
 def test_root_redirects_to_docs():

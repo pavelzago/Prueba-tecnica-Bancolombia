@@ -121,11 +121,13 @@ interface ReconciliationResponse { summary: Summary; results: ResultadoFactura[]
 
 ## Errores — `ErrorResponse`
 ```json
-{ "code": "MISSING_COLUMNS", "message": "El archivo de facturas no tiene las columnas obligatorias.", "details": ["valor_iva", "total_factura"] }
+{ "code": "MISSING_COLUMNS", "message": "El archivo de facturas no tiene las columnas obligatorias.", "details": ["valor_iva", "total_factura"], "file": "facturas" }
 ```
 ```ts
-interface ErrorResponse { code: string; message: string; details: string[]; }
+interface ErrorResponse { code: string; message: string; details: string[]; file: 'facturas' | 'contabilidad' | null; }
 ```
+
+`file` indica a qué archivo del formulario se refiere el error (para marcarlo en la interfaz). Es `null` cuando el error no es de un archivo concreto (404, 500, o faltan los dos archivos).
 
 | HTTP | `code` | Cuándo |
 |---|---|---|

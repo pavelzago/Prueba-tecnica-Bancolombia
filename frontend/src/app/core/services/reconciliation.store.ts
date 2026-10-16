@@ -18,6 +18,7 @@ const SAMPLE_ERROR: UiError = {
   message:
     'No se pudieron cargar los archivos de ejemplo. Recarga la página e inténtalo de nuevo, o selecciona tus propios archivos.',
   details: [],
+  file: null,
 };
 
 /** Lower-case and strip accents so "consultoria" matches "Consultoría". */
@@ -81,6 +82,9 @@ export class ReconciliationStore {
 
   /** True only while a load has lasted more than SKELETON_DELAY_MS. */
   readonly showSkeleton = computed(() => this._loading() && this._slowLoad());
+
+  /** File the last error points at (its field shows an X instead of a check). */
+  readonly invalidFile = computed(() => this._error()?.file ?? null);
 
   readonly summary = computed(() => this._result()?.summary ?? null);
   readonly totalResults = computed(() => this._result()?.results.length ?? 0);
@@ -174,15 +178,16 @@ export class ReconciliationStore {
     this._page.set(Math.ceil(firstRow / size));
   }
 
-  /** Selecting the active cause again clears it. A cause implies an inconsistency. */
+  /** Selecting the active cause again clears it. */
   toggleCause(cause: Exclude<CauseFilter, null>): void {
+    this.setCause(this._causeFilter() === cause ? null : cause);
+  }
+
+  /** A cause implies an inconsistency, so it never combines with "Correctas". */
+  setCause(cause: CauseFilter): void {
     this._page.set(1);
-    if (this._causeFilter() === cause) {
-      this._causeFilter.set(null);
-      return;
-    }
     this._causeFilter.set(cause);
-    if (this._filter() === 'Correcta') {
+    if (cause !== null && this._filter() === 'Correcta') {
       this._filter.set('all');
     }
   }

@@ -13,7 +13,8 @@
       [filter]="filter()"
       [counts]="counts()"
       [search]="search()"
-      [causeLabel]="causeLabel()"
+      [causeOptions]="causeOptions()"
+      [cause]="cause()"
       [shown]="shown()"
       [total]="total()"
       [rangeFrom]="pagination()?.from ?? 1"
@@ -21,7 +22,7 @@
       [hasActiveFilters]="hasActiveFilters()"
       (filterChange)="filterChange.emit($event)"
       (searchChange)="searchChange.emit($event)"
-      (causeClear)="causeClear.emit()"
+      (causeChange)="causeChange.emit($event)"
       (clearFilters)="clearFilters.emit()"
       (exportCsv)="exportCsv.emit()"
     />

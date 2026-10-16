@@ -28,6 +28,18 @@
     }
   }
 
+  &--invalid {
+    border-style: solid;
+    border-color: var(--color-danger-border);
+    background: var(--color-danger-row);
+
+    .field__mark {
+      border-color: var(--color-danger-border);
+      background: var(--color-danger-bg);
+      color: var(--color-danger);
+    }
+  }
+
   &--dragging {
     border-style: solid;
     border-color: var(--color-accent);
@@ -73,6 +85,12 @@
   font-weight: var(--weight-medium);
   color: var(--color-ink);
   overflow-wrap: anywhere;
+}
+
+.field__error {
+  display: block;
+  font-weight: var(--weight-medium);
+  color: var(--color-danger);
 }
 
 .field__size {

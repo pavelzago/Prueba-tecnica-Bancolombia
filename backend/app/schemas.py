@@ -21,6 +21,7 @@ class ErrorResponse(BaseModel):
     code: str
     message: str
     details: list[str]
+    file: str | None = None
 
 
 class InconsistencySchema(BaseModel):

@@ -3,6 +3,7 @@ import { CurrencyPipe, PercentPipe } from '@angular/common';
 
 import {
   CAUSE_LABELS,
+  CauseFilter,
   CodigoInconsistencia,
   PageInfo,
   ResultadoFactura,
@@ -11,6 +12,7 @@ import {
 } from '../../../../core/models/reconciliation.model';
 import { BadgeComponent } from '../../atoms/badge/badge.component';
 import { ButtonComponent } from '../../atoms/button/button.component';
+import { SelectOption } from '../../atoms/select-field/select-field.component';
 import { SkeletonComponent } from '../../atoms/skeleton/skeleton.component';
 import { EmptyStateComponent } from '../../molecules/empty-state/empty-state.component';
 import { PaginatorComponent } from '../../molecules/paginator/paginator.component';
@@ -67,12 +69,13 @@ export class ResultsTableComponent {
   readonly filter = input.required<StatusFilter>();
   readonly counts = input.required<StatusCounts>();
   readonly search = input('');
-  readonly causeLabel = input<string | null>(null);
+  readonly causeOptions = input<SelectOption[]>([]);
+  readonly cause = input<CauseFilter>(null);
   readonly hasActiveFilters = input(false);
 
   readonly filterChange = output<StatusFilter>();
   readonly searchChange = output<string>();
-  readonly causeClear = output<void>();
+  readonly causeChange = output<CauseFilter>();
   readonly clearFilters = output<void>();
   readonly exportCsv = output<void>();
   readonly pageChange = output<number>();

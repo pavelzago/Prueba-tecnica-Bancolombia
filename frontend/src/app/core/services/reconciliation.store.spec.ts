@@ -169,6 +169,7 @@ describe('ReconciliationStore', () => {
               code: 'MISSING_COLUMNS',
               message: 'El archivo de facturas no tiene las columnas obligatorias.',
               details: ['valor_iva', 'total_factura'],
+              file: 'facturas',
             },
           }),
       ),
@@ -182,7 +183,28 @@ describe('ReconciliationStore', () => {
     expect(store.error()).toEqual({
       message: 'El archivo de facturas no tiene las columnas obligatorias.',
       details: ['valor_iva', 'total_factura'],
+      file: 'invoices',
     });
+    expect(store.invalidFile()).toBe('invoices');
+  });
+
+  it('marks the ledger file as invalid when the backend blames it, until it is replaced', () => {
+    api.reconcile.mockReturnValue(
+      throwError(
+        () =>
+          new HttpErrorResponse({
+            status: 400,
+            error: { code: 'INVALID_FILE', message: 'El archivo de contabilidad está vacío.', details: [], file: 'contabilidad' },
+          }),
+      ),
+    );
+    store.setFile('invoices', invoices);
+    store.setFile('ledger', ledger);
+    store.process();
+    expect(store.invalidFile()).toBe('ledger');
+
+    store.setFile('ledger', new File(['c'], 'otra.csv'));
+    expect(store.invalidFile()).toBeNull();
   });
 
   it('shows a connection message when the backend is unreachable (status 0)', () => {
@@ -194,6 +216,7 @@ describe('ReconciliationStore', () => {
     store.process();
 
     expect(store.error()?.message).toContain('No fue posible conectar con el servidor');
+    expect(store.invalidFile()).toBeNull();
   });
 
   it('resets the filter and previous error on a new run', () => {
@@ -270,6 +293,16 @@ describe('ReconciliationStore', () => {
       store.toggleCause('SIN_REGISTRO_CONTABLE');
       expect(store.filter()).toBe('all');
       expect(filas()).toEqual([4, 5]);
+    });
+
+    it('setCause (error type selector) filters, and null shows every cause again', () => {
+      store.setFilter('Correcta');
+      store.setCause('IVA_DIFERENTE');
+      expect(store.filter()).toBe('all');
+      expect(filas()).toEqual([3, 5]);
+      store.setCause(null);
+      expect(store.causeFilter()).toBeNull();
+      expect(filas()).toEqual([2, 3, 4, 5]);
     });
 
     it('a new run clears search and cause and records the processing time', () => {

@@ -14,20 +14,31 @@ logger = logging.getLogger(__name__)
 class FileValidationError(Exception):
     """Error que rechaza la carga completa (extensión, vacío, columnas, tamaño, encoding)."""
 
-    def __init__(self, status_code: int, code: str, message: str, details: list[str] | None = None):
+    def __init__(
+        self,
+        status_code: int,
+        code: str,
+        message: str,
+        details: list[str] | None = None,
+        file: str | None = None,
+    ):
         super().__init__(message)
         self.status_code = status_code
         self.code = code
         self.message = message
         self.details = details or []
+        # Campo del formulario al que se refiere el error ("facturas" o "contabilidad"), si aplica.
+        self.file = file
 
 
-def error_body(code: str, message: str, details: list[str] | None = None) -> dict:
-    return {"code": code, "message": message, "details": details or []}
+def error_body(code: str, message: str, details: list[str] | None = None, file: str | None = None) -> dict:
+    return {"code": code, "message": message, "details": details or [], "file": file}
 
 
 async def file_validation_error_handler(_: Request, exc: FileValidationError) -> JSONResponse:
-    return JSONResponse(status_code=exc.status_code, content=error_body(exc.code, exc.message, exc.details))
+    return JSONResponse(
+        status_code=exc.status_code, content=error_body(exc.code, exc.message, exc.details, exc.file)
+    )
 
 
 async def request_validation_error_handler(_: Request, exc: RequestValidationError) -> JSONResponse:
@@ -45,6 +56,7 @@ async def request_validation_error_handler(_: Request, exc: RequestValidationErr
             "MISSING_FILE",
             "Debe adjuntar los dos archivos: facturas y contabilidad.",
             fields,
+            fields[0] if len(fields) == 1 and fields[0] in ("facturas", "contabilidad") else None,
         ),
     )
 

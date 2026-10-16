@@ -27,13 +27,17 @@ def read_csv(
     file_label: str,
     max_size_bytes: int,
 ) -> list[CsvRow]:
-    """Valida y lee un CSV. `file_label` es el nombre de negocio usado en los mensajes."""
+    """Valida y lee un CSV. `file_label` es el nombre de negocio usado en los mensajes.
+
+    Los errores llevan `file=file_label` para que el frontend marque el archivo culpable.
+    """
     if not (filename or "").lower().endswith(CSV_EXTENSION):
         raise FileValidationError(
             400,
             "INVALID_FILE",
             f"El archivo de {file_label} debe tener extensión .csv.",
             [filename or ""],
+            file=file_label,
         )
     if len(content) > max_size_bytes:
         raise FileValidationError(
@@ -41,6 +45,7 @@ def read_csv(
             "FILE_TOO_LARGE",
             f"El archivo de {file_label} supera el tamaño máximo de {max_size_bytes // (1024 * 1024)} MB.",
             [filename or ""],
+            file=file_label,
         )
 
     try:
@@ -51,11 +56,12 @@ def read_csv(
             "INVALID_FILE",
             f"El archivo de {file_label} no está codificado en UTF-8.",
             [filename or ""],
+            file=file_label,
         ) from exc
 
     if not text.strip():
         raise FileValidationError(
-            400, "INVALID_FILE", f"El archivo de {file_label} está vacío.", [filename or ""]
+            400, "INVALID_FILE", f"El archivo de {file_label} está vacío.", [filename or ""], file=file_label
         )
 
     reader = csv.reader(io.StringIO(text, newline=""))
@@ -67,6 +73,7 @@ def read_csv(
             "MISSING_COLUMNS",
             f"El archivo de {file_label} no tiene las columnas obligatorias.",
             missing_columns,
+            file=file_label,
         )
 
     rows: list[CsvRow] = []
@@ -81,6 +88,6 @@ def read_csv(
 
     if not rows:
         raise FileValidationError(
-            400, "INVALID_FILE", f"El archivo de {file_label} no tiene filas de datos.", [filename or ""]
+            400, "INVALID_FILE", f"El archivo de {file_label} no tiene filas de datos.", [filename or ""], file=file_label
         )
     return rows

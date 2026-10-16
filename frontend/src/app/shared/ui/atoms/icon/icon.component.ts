@@ -12,7 +12,10 @@ export type IconName =
   | 'table'
   | 'chart'
   | 'chevron-left'
-  | 'chevron-right';
+  | 'chevron-right'
+  | 'sun'
+  | 'moon'
+  | 'monitor';
 
 /** 24×24 stroke paths (drawn for this app). Decorative unless `label` is given. */
 const PATHS: Record<IconName, string> = {
@@ -28,6 +31,9 @@ const PATHS: Record<IconName, string> = {
   chart: 'M4 20h16M7 16V10M12 16V5M17 16v-4',
   'chevron-left': 'M14.5 6l-6 6 6 6',
   'chevron-right': 'M9.5 6l6 6-6 6',
+  sun: 'M12 16a4 4 0 100-8 4 4 0 000 8zM12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4',
+  moon: 'M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z',
+  monitor: 'M3.5 4.5h17v11h-17zM9 20h6M12 15.5V20',
 };
 
 @Component({
