@@ -150,7 +150,7 @@ ul.next li span { display: block; font-size: 15px; color: var(--muted); }
   <div class="arrow">→</div>
   <div class="step"><div class="n">2</div><h3>Validar</h3><p>La herramienta aplica todas las reglas a cada factura de forma automática.</p></div>
   <div class="arrow">→</div>
-  <div class="step"><div class="n">3</div><h3>Resumen</h3><p>Cuántas facturas están correctas, cuántas no y cuáles son las causas más frecuentes.</p></div>
+  <div class="step"><div class="n">3</div><h3>Resumen</h3><p>Cuántas facturas están correctas, cuánto falta por contabilizar y cuáles son las causas más frecuentes.</p></div>
   <div class="arrow">→</div>
   <div class="step"><div class="n">4</div><h3>Revisar y exportar</h3><p>Se filtran las inconsistencias por causa y se descargan a Excel para gestionarlas.</p></div>
 </div>
@@ -180,7 +180,7 @@ ul.next li span { display: block; font-size: 15px; color: var(--muted); }
     <tr><td>IVA diferente</td><td>2</td></tr>
     <tr><td>Valor contable diferente</td><td>2</td></tr>
   </table>
-  <p class="fine">Una factura puede tener varias causas.</p>
+  <p class="fine">28 causas en 22 facturas: 5 facturas tienen más de una.<br>Sin contabilizar: <b>$11.521.700</b> en 4 facturas sin registro contable.</p>
 </div>
 <div>
   <div class="shot"><img src="img/conciliador-claro-desktop-resultados.png" alt="Resumen del conciliador con los datos de prueba"></div>
