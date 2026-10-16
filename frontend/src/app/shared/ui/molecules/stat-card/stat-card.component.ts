@@ -43,7 +43,7 @@ export type StatTone = 'neutral' | 'success' | 'danger' | 'warning';
     .stat--success .stat__value { color: var(--color-success); }
     .stat--danger .stat__dot { background: var(--color-danger); }
     .stat--danger .stat__value { color: var(--color-danger); }
-    .stat--warning .stat__dot { background: var(--chart-total); }
+    .stat--warning .stat__dot { background: var(--color-warning); }
     .stat--warning .stat__value { color: var(--color-warning); }
     @media (max-width: 30rem) {
       .stat { padding: var(--space-3) var(--space-4); }

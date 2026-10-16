@@ -62,10 +62,6 @@ export class SummaryPanelComponent {
     { label: '64%', bar: '30%' },
   ];
 
-  protected readonly maxCause = computed(() =>
-    Math.max(0, ...(this.summary()?.por_causa ?? []).map((c) => c.cantidad)),
-  );
-
   protected readonly headline = computed(() => {
     const s = this.summary();
     if (!s) return '';

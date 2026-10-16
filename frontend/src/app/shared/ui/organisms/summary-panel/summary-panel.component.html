@@ -76,14 +76,16 @@
           }
         </div>
         @if (s.por_causa.length) {
-          <p class="block__note block__hint">Haz clic en una causa para ver solo esas facturas.</p>
+          <p class="block__note block__hint">
+            % sobre las {{ s.con_inconsistencia | number }} facturas con inconsistencia. Haz clic en una causa para ver solo esas facturas.
+          </p>
           <ul class="causes">
             @for (cause of s.por_causa; track cause.codigo) {
               <li>
                 <app-cause-bar
                   [label]="cause.descripcion"
                   [count]="cause.cantidad"
-                  [max]="maxCause()"
+                  [base]="s.con_inconsistencia"
                   [active]="activeCause() === cause.codigo"
                   (toggled)="causeToggle.emit(cause.codigo)"
                 />

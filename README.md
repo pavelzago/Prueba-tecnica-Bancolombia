@@ -121,7 +121,7 @@ La tabla cuenta facturas, no ocurrencias. Como una factura puede tener varias ca
 
 ```bash
 cd backend && .venv/bin/pytest -q            # 64 tests: reglas, lector CSV y API (test golden 50/28/22)
-cd frontend && npx ng test --watch=false     # 46 tests: servicio HTTP, store, filtros, paginación, resumen, tema y exportación
+cd frontend && npx ng test --watch=false     # 48 tests: servicio HTTP, store, filtros, paginación, resumen, tema y exportación
 ```
 
 ## 📐 Reglas de negocio y supuestos

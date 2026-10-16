@@ -118,7 +118,7 @@ La pantalla sigue tres pasos:
    - **Indicadores**: facturas analizadas, correctas y con inconsistencia (con su porcentaje), **monto sin contabilizar** (suma del total reportado de las facturas sin registro contable) y **diferencia neta contable** (suma de valor contabilizado − total de la factura en las facturas con `VALOR_CONTABLE_DIFERENTE`).
    - **Estado de las facturas**: gráfico de dona con las facturas correctas, las que tienen una inconsistencia y las que tienen dos o más (28 / 17 / 5 con los datos de ejemplo). Los segmentos suman el total de facturas y no dependen de ninguna prioridad entre causas.
    - **Diferencias por concepto**: para IVA, retención y total, la suma de (reportado − calculado) en las facturas marcadas por esa causa; para el valor contable, la suma de (contabilidad − factura). El signo indica hacia dónde va el error: `+` significa que se reportó (o contabilizó) de más.
-   - **Inconsistencias por causa**: barras con el número de facturas que tienen cada causa. El encabezado enlaza con la dona: "28 causas en 22 facturas: 5 facturas tienen más de una, por eso la suma es mayor". La longitud de cada barra es proporcional a la causa más frecuente.
+   - **Inconsistencias por causa**: barras con el número de facturas que tienen cada causa. El encabezado enlaza con la dona: "28 causas en 22 facturas: 5 facturas tienen más de una, por eso la suma es mayor". Cada barra muestra el número de facturas y su porcentaje **sobre las facturas con inconsistencia** (por ejemplo, "Registro contable duplicado: 7 · 32 %", es decir, 7 de 22), y su longitud es ese mismo porcentaje. Como una factura puede tener varias causas, los porcentajes no suman 100 %.
 3. **Detalle por factura.** Es una tabla con estado, montos y causas.
 
 Funciones adicionales:
@@ -350,7 +350,7 @@ frontend/src/app/
 cd backend
 .venv/bin/pytest -q          # PowerShell: .venv\Scripts\pytest -q
 
-# Frontend: 46 tests con Vitest
+# Frontend: 48 tests con Vitest
 cd frontend
 npx ng test --watch=false
 ```
@@ -360,7 +360,7 @@ npx ng test --watch=false
 | `backend/tests/test_rules.py` | Cálculo de IVA, retención y total; redondeo `ROUND_HALF_UP`; tolerancia de ±1; duplicados; cruce contable |
 | `backend/tests/test_csv_reader.py` | BOM, columnas faltantes, archivo vacío, extensión y tamaño |
 | `backend/tests/test_api.py` | **Test golden**: procesa `test-data/` y comprueba 50/28/22, el desglose por causa y las causas de facturas representativas. También cubre los errores HTTP y el CORS |
-| Frontend (`*.spec.ts`) | Servicio HTTP (FormData y URL), store (filtros por estado y tipo de error, búsqueda, paginación, skeleton y archivo marcado como inválido), debounce del buscador, cálculos del resumen (estado por número de causas y diferencias por concepto), selector de tema y exportación CSV |
+| Frontend (`*.spec.ts`) | Servicio HTTP (FormData y URL), store (filtros por estado y tipo de error, búsqueda, paginación, skeleton y archivo marcado como inválido), debounce del buscador, barra de causa (proporción sobre la base), cálculos del resumen (estado por número de causas y diferencias por concepto), selector de tema y exportación CSV |
 
 El test golden protege las reglas de negocio de punta a punta: si un cambio altera la clasificación de alguna factura, falla.
 
