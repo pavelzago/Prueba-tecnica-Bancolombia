@@ -10,7 +10,7 @@ Prototipo web que carga `facturas.csv` y `contabilidad.csv`, aplica reglas conta
 ## 🚀 Funcionalidades
 
 - **Carga de archivos** con validación: extensión, archivo vacío, columnas obligatorias y tamaño máximo de 2 MB.
-- **Resumen**: total de facturas, correctas, con inconsistencia y desglose por causa. Al pulsar una causa, la tabla se filtra.
+- **Resumen**: cuántas facturas requieren revisión, indicadores (correctas, con inconsistencia, monto sin contabilizar y diferencia neta contable), gráfico de dona con la composición del resultado, diferencias netas por concepto y desglose por causa. Al pulsar una causa, la tabla se filtra.
 - **Detalle por factura** con filtro por estado y por tipo de error, buscador (por id, NIT o concepto) y paginación. Cuando un valor no cuadra, se muestra el **reportado frente al calculado**.
 - **Exportar a CSV** las filas filtradas, en un formato que Excel en español abre bien.
 - **Probar con archivos de ejemplo**: un botón que procesa los CSV de `test-data/` sin tener que buscarlos en disco.

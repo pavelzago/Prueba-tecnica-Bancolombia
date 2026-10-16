@@ -64,6 +64,10 @@ import { ReconciliationLayoutComponent } from '../../templates/reconciliation-la
       <ng-container layoutResults>
         <app-summary-panel
           [summary]="store.summary()"
+          [insights]="store.insights()"
+          [invoicesName]="store.invoicesFile()?.name ?? ''"
+          [ledgerName]="store.ledgerFile()?.name ?? ''"
+          [processedAt]="store.processedAt()"
           [loading]="store.loading()"
           [skeleton]="store.showSkeleton()"
           [activeCause]="store.causeFilter()"

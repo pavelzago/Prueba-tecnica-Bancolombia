@@ -8,31 +8,71 @@
 
   @if (summary(); as s) {
     <div class="summary">
-      <div class="summary__figures">
-        <app-stat-card
-          label="Facturas procesadas"
-          [value]="s.total_facturas"
-          [caption]="(s.total_registros_contables | number) + ' registros contables leídos'"
-        />
-        <app-stat-card
-          label="Correctas"
-          tone="success"
-          [value]="s.correctas"
-          [share]="ratio(s.correctas)"
-        />
-        <app-stat-card
-          label="Con inconsistencia"
-          tone="danger"
-          [value]="s.con_inconsistencia"
-          [share]="ratio(s.con_inconsistencia)"
-        />
+      <div class="summary__head">
+        @if (invoicesName() || ledgerName()) {
+          <p class="summary__meta">
+            {{ invoicesName() }} <span aria-label="contra">↔</span> {{ ledgerName() }}
+            @if (processedAt(); as at) {
+              · {{ at | date: 'dd/MM/yyyy, h:mm a' }}
+            }
+          </p>
+        }
+        <p class="summary__headline">{{ headline() }}</p>
       </div>
 
-      <div class="summary__causes">
-        <div class="summary__causes-head">
-          <h3 class="summary__subtitle">Inconsistencias por causa</h3>
+      <div class="kpis">
+        @for (kpi of kpis(); track kpi.label) {
+          <app-stat-card [label]="kpi.label" [value]="kpi.value" [caption]="kpi.caption" [tone]="kpi.tone" />
+        }
+      </div>
+
+      <div class="summary__grid">
+        <section class="block" aria-labelledby="composition-title">
+          <div class="block__head">
+            <h3 class="block__title" id="composition-title">Composición del resultado</h3>
+            <p class="block__note">por hallazgo principal de cada factura</p>
+          </div>
+          <app-donut-chart [slices]="slices()" unit="facturas" [ariaLabel]="donutLabel()" />
+        </section>
+
+        <section class="block" aria-labelledby="concepts-title">
+          <div class="block__head">
+            <h3 class="block__title" id="concepts-title">Diferencias por concepto</h3>
+            <p class="block__note">reportado − calculado, fuera de tolerancia</p>
+          </div>
+          <table class="concepts">
+            <thead>
+              <tr>
+                <th scope="col">Concepto</th>
+                <th scope="col" class="num">Facturas</th>
+                <th scope="col" class="num">Diferencia neta</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of insights()?.conceptDifferences ?? []; track row.concept) {
+                <tr [class.concepts__row--empty]="!row.count">
+                  <th scope="row">
+                    {{ row.concept }}
+                    @if (row.concept === 'Valor contable') {
+                      <span class="concepts__hint">contabilidad − factura</span>
+                    }
+                  </th>
+                  <td class="num">{{ row.count | number }}</td>
+                  <td class="num concepts__amount" [class.concepts__amount--diff]="row.amount !== 0">
+                    {{ row.count ? signedMoney(row.amount) : '—' }}
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </section>
+      </div>
+
+      <section class="block" aria-labelledby="causes-title">
+        <div class="block__head">
+          <h3 class="block__title" id="causes-title">Inconsistencias por causa</h3>
           @if (s.por_causa.length) {
-            <p class="summary__note">
+            <p class="block__note">
               Haz clic en una causa para ver solo esas facturas. Una factura puede tener varias.
             </p>
           }
@@ -52,11 +92,9 @@
             }
           </ul>
         } @else {
-          <p class="summary__note">
-            Todas las facturas cuadran: no se encontraron inconsistencias.
-          </p>
+          <p class="block__note">Todas las facturas cuadran: no se encontraron inconsistencias.</p>
         }
-      </div>
+      </section>
     </div>
   } @else if (loading()) {
     <!-- One persistent status message; the silhouette appears only if the load is slow (no flash). -->
@@ -65,27 +103,30 @@
     </p>
     @if (skeleton()) {
       <div class="summary summary--skeleton" aria-hidden="true">
-        <div class="summary__figures">
-          @for (card of [1, 2, 3]; track card) {
-            <div class="stat-skeleton">
-              <app-skeleton width="8rem" height="0.75rem" />
-              <app-skeleton [width]="card === 1 ? '5.5rem' : '7rem'" height="1.75rem" />
+        <app-skeleton width="22rem" height="1.75rem" />
+        <div class="kpis">
+          @for (cell of [1, 2, 3, 4, 5]; track cell) {
+            <div class="kpi-skeleton">
+              <app-skeleton width="7rem" height="0.75rem" />
+              <app-skeleton [width]="cell > 3 ? '8rem' : '3.5rem'" height="1.75rem" />
+              <app-skeleton width="6rem" height="0.625rem" />
             </div>
           }
         </div>
-        <div class="summary__causes">
-          <div class="summary__causes-head">
-            <app-skeleton width="11rem" height="0.875rem" />
-          </div>
-          <div class="causes causes--skeleton">
-            @for (width of causeSkeletonWidths; track $index) {
-              <div class="cause-skeleton">
-                <app-skeleton [width]="width.label" />
-                <app-skeleton [width]="width.bar" height="0.625rem" />
-                <app-skeleton width="1.5rem" class="cause-skeleton__count" />
+        <div class="summary__grid">
+          @for (block of [1, 2]; track block) {
+            <div class="block">
+              <app-skeleton width="11rem" height="0.875rem" />
+              <div class="causes causes--skeleton">
+                @for (width of causeSkeletonWidths; track $index) {
+                  <div class="cause-skeleton">
+                    <app-skeleton [width]="width.label" />
+                    <app-skeleton [width]="width.bar" height="0.625rem" />
+                  </div>
+                }
               </div>
-            }
-          </div>
+            </div>
+          }
         </div>
       </div>
     }
@@ -94,7 +135,7 @@
       class="summary__empty"
       icon="chart"
       title="Aún no hay resultados"
-      text="Aquí verás el total de facturas, cuántas cuadran y la causa de cada inconsistencia. Carga los dos archivos o prueba con los de ejemplo."
+      text="Aquí verás cuántas facturas cuadran, el monto sin contabilizar, las diferencias por concepto y la causa de cada inconsistencia. Carga los dos archivos o prueba con los de ejemplo."
     />
   }
 </section>

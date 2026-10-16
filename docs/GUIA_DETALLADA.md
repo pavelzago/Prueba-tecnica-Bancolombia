@@ -113,7 +113,12 @@ Los comandos son iguales en PowerShell. Abre <http://localhost:4200>. `npx ng` u
 La pantalla sigue tres pasos:
 
 1. **Cargar archivos.** Se elige un archivo de facturas y uno de contabilidad, arrastrándolos o con el selector, y se pulsa **Procesar conciliación**. El botón queda deshabilitado hasta tener los dos archivos y mientras se procesa. Después de procesar, el paso se compacta en una línea, y **Cambiar archivos** lo vuelve a abrir.
-2. **Resumen.** Muestra el total de facturas, las correctas, las que tienen inconsistencia y el desglose por causa.
+2. **Resumen.** De arriba abajo:
+   - **Titular**: los archivos procesados, la fecha y hora, y cuántas facturas requieren revisión ("22 de 50 facturas requieren revisión.").
+   - **Indicadores**: facturas analizadas, correctas y con inconsistencia (con su porcentaje), **monto sin contabilizar** (suma del total reportado de las facturas sin registro contable) y **diferencia neta contable** (suma de valor contabilizado − total de la factura en las facturas con `VALOR_CONTABLE_DIFERENTE`).
+   - **Composición del resultado**: gráfico de dona donde cada factura cuenta **una sola vez**, por su *hallazgo principal*, así que los segmentos suman el total de facturas. Cuando una factura tiene varias causas, se toma la más grave según este orden: sin registro contable → factura duplicada → valor contable diferente → total diferente → IVA diferente → retención diferente → contabilización pendiente → valor inválido → campo vacío → registro contable duplicado (`frontend/src/app/core/utils/summary-insights.ts`).
+   - **Diferencias por concepto**: para IVA, retención y total, la suma de (reportado − calculado) en las facturas marcadas por esa causa; para el valor contable, la suma de (contabilidad − factura). El signo indica hacia dónde va el error: `+` significa que se reportó (o contabilizó) de más.
+   - **Inconsistencias por causa**: barras con el número de facturas que tienen cada causa. Aquí una factura puede contar en varias causas, por eso la suma supera las facturas con inconsistencia. La longitud de cada barra es proporcional a la causa más frecuente.
 3. **Detalle por factura.** Es una tabla con estado, montos y causas.
 
 Funciones adicionales:

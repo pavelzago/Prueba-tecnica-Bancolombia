@@ -11,6 +11,7 @@ import {
   StatusFilter,
 } from '../models/reconciliation.model';
 import { UiError, mapHttpError } from '../utils/http-error.mapper';
+import { buildSummaryInsights } from '../utils/summary-insights';
 import { ReconciliationApiService } from './reconciliation-api.service';
 import { SampleFilesService } from './sample-files.service';
 
@@ -87,6 +88,11 @@ export class ReconciliationStore {
   readonly invalidFile = computed(() => this._error()?.file ?? null);
 
   readonly summary = computed(() => this._result()?.summary ?? null);
+  /** Derived figures for the summary (amounts, composition, differences by concept). */
+  readonly insights = computed(() => {
+    const result = this._result();
+    return result ? buildSummaryInsights(result.results) : null;
+  });
   readonly totalResults = computed(() => this._result()?.results.length ?? 0);
   readonly canProcess = computed(
     () => !!this._invoicesFile() && !!this._ledgerFile() && !this._loading(),

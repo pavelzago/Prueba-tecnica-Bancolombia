@@ -1,50 +1,131 @@
 .summary {
   display: grid;
-  grid-template-columns: minmax(14rem, 18rem) 1fr;
-  gap: var(--space-6);
-  margin-top: var(--space-5);
-
-  @media (max-width: 52rem) {
-    grid-template-columns: minmax(0, 1fr);
-    gap: var(--space-5);
-  }
+  gap: var(--space-4);
+  margin-top: var(--space-4);
 }
 
-.summary__figures {
+/* Headline: files processed + how many invoices need review. */
+.summary__head {
   display: grid;
-  gap: var(--space-2);
-  align-content: start;
+  gap: var(--space-1);
+}
 
-  @media (max-width: 52rem) and (min-width: 30.01rem) {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    column-gap: var(--space-3);
+.summary__meta {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.02em;
+  color: var(--color-ink-soft);
+  overflow-wrap: anywhere;
+}
+
+.summary__headline {
+  margin: 0;
+  font-size: var(--text-xl);
+  font-weight: var(--weight-semibold);
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+/* Key figures: one strip, cells separated by hairlines. */
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(11.5rem, 100%), 1fr));
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  overflow: hidden;
+
+  > * {
+    box-shadow: -1px 0 0 var(--color-border), 0 -1px 0 var(--color-border);
   }
 }
 
-.summary__causes {
-  min-width: 0;
+.summary__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(26rem, 100%), 1fr));
+  gap: var(--space-4);
 }
 
-.summary__causes-head {
+.block {
+  min-width: 0;
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+
+  @media (max-width: 30rem) {
+    padding: var(--space-3) var(--space-4);
+  }
+}
+
+.block__head {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  justify-content: space-between;
-  gap: var(--space-1) var(--space-4);
-  margin-bottom: var(--space-2);
-  padding-bottom: var(--space-2);
-  border-bottom: 1px solid var(--color-border);
+  gap: var(--space-1) var(--space-3);
+  margin-bottom: var(--space-4);
 }
 
-.summary__subtitle {
+.block__title {
   margin: 0;
   font-size: var(--text-md);
 }
 
-.summary__note {
+.block__note {
   margin: 0;
   font-size: var(--text-xs);
   color: var(--color-ink-soft);
+}
+
+/* Differences by concept. */
+.concepts {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+
+  th,
+  td {
+    padding: var(--space-2) 0;
+    border-bottom: 1px solid var(--color-border);
+    text-align: left;
+    font-weight: 400;
+  }
+
+  thead th {
+    padding-top: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    color: var(--color-ink-soft);
+  }
+
+  tbody tr:last-child > * {
+    border-bottom: 0;
+  }
+
+  .num {
+    text-align: right;
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    padding-left: var(--space-4);
+  }
+}
+
+.concepts__hint {
+  display: block;
+  font-size: var(--text-xs);
+  color: var(--color-ink-faint);
+}
+
+.concepts__amount--diff {
+  font-weight: var(--weight-semibold);
+  color: var(--color-warning);
+}
+
+.concepts__row--empty {
+  color: var(--color-ink-faint);
 }
 
 .summary__empty {
@@ -59,35 +140,27 @@
   list-style: none;
 }
 
-/* Skeleton silhouette (same grid as the real summary). */
+/* Skeleton silhouette (same layout as the real summary). */
 .summary__busy {
   margin: var(--space-4) 0 0;
   font-size: var(--text-xs);
   color: var(--color-ink-faint);
 }
 
-.summary--skeleton {
-  margin-top: var(--space-3);
-}
-
-.stat-skeleton {
+.kpi-skeleton {
   display: grid;
   gap: var(--space-2);
-  padding: var(--space-3) 0 var(--space-3) var(--space-4);
-  border-left: 3px solid var(--color-border);
+  padding: var(--space-4) var(--space-5);
 }
 
-
+.causes--skeleton {
+  margin-top: var(--space-4);
+}
 
 .cause-skeleton {
   display: grid;
-  grid-template-columns: minmax(9rem, 15rem) 1fr 3.5rem;
+  grid-template-columns: minmax(7rem, 12rem) 1fr;
   align-items: center;
   gap: var(--space-3);
   min-height: 2.25rem;
-  padding: var(--space-1) var(--space-2);
-}
-
-.cause-skeleton__count {
-  justify-self: end;
 }
