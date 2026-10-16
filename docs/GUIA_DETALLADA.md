@@ -350,7 +350,7 @@ frontend/src/app/
 cd backend
 .venv/bin/pytest -q          # PowerShell: .venv\Scripts\pytest -q
 
-# Frontend: 43 tests con Vitest
+# Frontend: 47 tests con Vitest
 cd frontend
 npx ng test --watch=false
 ```
@@ -360,7 +360,7 @@ npx ng test --watch=false
 | `backend/tests/test_rules.py` | Cálculo de IVA, retención y total; redondeo `ROUND_HALF_UP`; tolerancia de ±1; duplicados; cruce contable |
 | `backend/tests/test_csv_reader.py` | BOM, columnas faltantes, archivo vacío, extensión y tamaño |
 | `backend/tests/test_api.py` | **Test golden**: procesa `test-data/` y comprueba 50/28/22, el desglose por causa y las causas de facturas representativas. También cubre los errores HTTP y el CORS |
-| Frontend (`*.spec.ts`) | Servicio HTTP (FormData y URL), store (filtros por estado y tipo de error, búsqueda, paginación, skeleton y archivo marcado como inválido), debounce del buscador, selector de tema y exportación CSV |
+| Frontend (`*.spec.ts`) | Servicio HTTP (FormData y URL), store (filtros por estado y tipo de error, búsqueda, paginación, skeleton y archivo marcado como inválido), debounce del buscador, cálculos del resumen (composición y diferencias por concepto), selector de tema y exportación CSV |
 
 El test golden protege las reglas de negocio de punta a punta: si un cambio altera la clasificación de alguna factura, falla.
 
