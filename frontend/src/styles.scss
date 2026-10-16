@@ -46,18 +46,10 @@
   --color-bar: #a19c8a;
   --color-bar-track: #ebe9e0;
 
-  /* Chart: one stable hue per finding (composition donut). */
+  /* Chart: invoice status donut. */
   --chart-ok: #3f8f5a;
-  --chart-sin-registro: #b3261e;
-  --chart-duplicada: #6b4a96;
-  --chart-valor-contable: #c2510f;
-  --chart-total: #a26a00;
-  --chart-iva: #0f7489;
-  --chart-retencion: #2f8f8a;
-  --chart-pendiente: #2f5d8a;
-  --chart-invalido: #9d174d;
-  --chart-vacio: #6b7280;
-  --chart-registro-duplicado: #8a7f5c;
+  --chart-one: #e0897f;
+  --chart-many: #ae1f1b;
 
   /* Spacing scale. */
   --space-1: 0.25rem;
@@ -137,16 +129,8 @@
   --color-bar-track: #2c2a23;
 
   --chart-ok: #6cc489;
-  --chart-sin-registro: #f0776d;
-  --chart-duplicada: #b597e0;
-  --chart-valor-contable: #f29a5c;
-  --chart-total: #e3b341;
-  --chart-iva: #5bc0d6;
-  --chart-retencion: #6fd1c6;
-  --chart-pendiente: #7fa8db;
-  --chart-invalido: #e87aa8;
-  --chart-vacio: #a3a9b4;
-  --chart-registro-duplicado: #c2b78f;
+  --chart-one: #b5574e;
+  --chart-many: #ff9187;
 }
 
 // Theme: "system" (no data-theme) follows the OS; data-theme="light"/"dark" forces one.

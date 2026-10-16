@@ -1,28 +1,12 @@
 import { CodigoInconsistencia, ResultadoFactura } from '../models/reconciliation.model';
 
-/**
- * Order used to pick the *principal* finding of an invoice with several causes, from the
- * most to the least severe for accounting: first what is missing in the ledger, then wrong
- * amounts, then status and data quality. The composition chart counts each invoice once.
- */
-export const PRINCIPAL_PRIORITY: readonly CodigoInconsistencia[] = [
-  'SIN_REGISTRO_CONTABLE',
-  'FACTURA_DUPLICADA',
-  'VALOR_CONTABLE_DIFERENTE',
-  'TOTAL_DIFERENTE',
-  'IVA_DIFERENTE',
-  'RETENCION_DIFERENTE',
-  'CONTABILIZACION_PENDIENTE',
-  'VALOR_INVALIDO',
-  'CAMPO_VACIO',
-  'REGISTRO_CONTABLE_DUPLICADO',
-];
-
-export type CompositionKey = 'CORRECTA' | CodigoInconsistencia;
-
-export interface CompositionSlice {
-  key: CompositionKey;
-  count: number;
+/** Invoices by how many causes they have: what the composition donut shows. */
+export interface StatusBreakdown {
+  correct: number;
+  /** Exactly one cause. */
+  single: number;
+  /** Two or more causes. */
+  multiple: number;
 }
 
 export interface AmountTotal {
@@ -41,16 +25,12 @@ export interface SummaryInsights {
   unposted: AmountTotal;
   /** Matched invoices whose ledger value differs: sum of (ledger − invoice total). */
   ledgerDifference: AmountTotal;
-  /** One slice per principal finding (plus correct invoices), largest first. Sums to the invoice count. */
-  composition: CompositionSlice[];
+  /** Correct / one cause / several causes. Sums to the invoice count. */
+  breakdown: StatusBreakdown;
+  /** Invoice–cause pairs: what the "by cause" list adds up to (an invoice can count in several causes). */
+  causeCount: number;
   /** Net difference per concept, only over invoices flagged for that concept. */
   conceptDifferences: ConceptDifference[];
-}
-
-export function principalFinding(row: ResultadoFactura): CompositionKey {
-  if (!row.inconsistencias.length) return 'CORRECTA';
-  const codes = new Set(row.inconsistencias.map((i) => i.codigo));
-  return PRINCIPAL_PRIORITY.find((code) => codes.has(code)) ?? row.inconsistencias[0].codigo;
 }
 
 function has(row: ResultadoFactura, code: CodigoInconsistencia): boolean {
@@ -91,18 +71,15 @@ export function buildSummaryInsights(rows: ResultadoFactura[]): SummaryInsights 
     (r) => r.total_reportado,
   );
 
-  const counts = new Map<CompositionKey, number>();
+  const breakdown: StatusBreakdown = { correct: 0, single: 0, multiple: 0 };
+  let causeCount = 0;
   for (const row of rows) {
-    const key = principalFinding(row);
-    counts.set(key, (counts.get(key) ?? 0) + 1);
+    const causes = new Set(row.inconsistencias.map((i) => i.codigo)).size;
+    causeCount += causes;
+    if (causes === 0) breakdown.correct++;
+    else if (causes === 1) breakdown.single++;
+    else breakdown.multiple++;
   }
-  const composition = [...counts]
-    .map(([key, count]) => ({ key, count }))
-    .sort((x, y) => {
-      if (x.key === 'CORRECTA') return -1; // correct invoices always lead
-      if (y.key === 'CORRECTA') return 1;
-      return y.count - x.count || PRINCIPAL_PRIORITY.indexOf(x.key) - PRINCIPAL_PRIORITY.indexOf(y.key);
-    });
 
   const conceptDifferences: ConceptDifference[] = [
     { concept: 'IVA', ...netDifference(rows, 'IVA_DIFERENTE', (r) => r.iva_reportado, (r) => r.iva_calculado) },
@@ -114,5 +91,5 @@ export function buildSummaryInsights(rows: ResultadoFactura[]): SummaryInsights 
     { concept: 'Valor contable', ...ledgerDifference },
   ];
 
-  return { unposted, ledgerDifference, composition, conceptDifferences };
+  return { unposted, ledgerDifference, breakdown, causeCount, conceptDifferences };
 }

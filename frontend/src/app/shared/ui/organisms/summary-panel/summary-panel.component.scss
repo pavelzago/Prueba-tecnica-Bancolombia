@@ -78,6 +78,15 @@
   color: var(--color-ink-soft);
 }
 
+.block__note--strong {
+  font-size: var(--text-sm);
+  color: var(--color-ink);
+}
+
+.block__hint {
+  margin: calc(-1 * var(--space-2)) 0 var(--space-3);
+}
+
 /* Differences by concept. */
 .concepts {
   width: 100%;

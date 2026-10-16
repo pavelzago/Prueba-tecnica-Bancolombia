@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { CodigoInconsistencia, ResultadoFactura } from '../models/reconciliation.model';
-import { buildSummaryInsights, principalFinding } from './summary-insights';
+import { buildSummaryInsights } from './summary-insights';
 
 function row(codes: CodigoInconsistencia[], patch: Partial<ResultadoFactura> = {}): ResultadoFactura {
   return {
@@ -29,27 +29,16 @@ function row(codes: CodigoInconsistencia[], patch: Partial<ResultadoFactura> = {
 }
 
 describe('summary insights', () => {
-  it('picks the most severe cause as the principal finding, whatever the backend order', () => {
-    expect(principalFinding(row([]))).toBe('CORRECTA');
-    expect(principalFinding(row(['CAMPO_VACIO', 'SIN_REGISTRO_CONTABLE']))).toBe('SIN_REGISTRO_CONTABLE');
-    expect(principalFinding(row(['IVA_DIFERENTE', 'REGISTRO_CONTABLE_DUPLICADO']))).toBe('IVA_DIFERENTE');
-  });
-
-  it('composition counts each invoice once, correct first, then largest slice', () => {
-    const { composition } = buildSummaryInsights([
-      row(['REGISTRO_CONTABLE_DUPLICADO']),
-      row(['IVA_DIFERENTE', 'REGISTRO_CONTABLE_DUPLICADO']),
-      row(['TOTAL_DIFERENTE']),
-      row(['TOTAL_DIFERENTE']),
+  it('splits invoices into correct, one cause and several causes, and counts invoice–cause pairs', () => {
+    const insights = buildSummaryInsights([
       row([]),
+      row([]),
+      row(['TOTAL_DIFERENTE']),
+      row(['IVA_DIFERENTE', 'REGISTRO_CONTABLE_DUPLICADO']),
+      row(['FACTURA_DUPLICADA', 'REGISTRO_CONTABLE_DUPLICADO', 'VALOR_CONTABLE_DIFERENTE']),
     ]);
-    expect(composition).toEqual([
-      { key: 'CORRECTA', count: 1 },
-      { key: 'TOTAL_DIFERENTE', count: 2 },
-      { key: 'IVA_DIFERENTE', count: 1 },
-      { key: 'REGISTRO_CONTABLE_DUPLICADO', count: 1 },
-    ]);
-    expect(composition.reduce((sum, slice) => sum + slice.count, 0)).toBe(5);
+    expect(insights.breakdown).toEqual({ correct: 2, single: 1, multiple: 2 });
+    expect(insights.causeCount).toBe(6);
   });
 
   it('adds up what is not in the ledger and the net ledger difference', () => {

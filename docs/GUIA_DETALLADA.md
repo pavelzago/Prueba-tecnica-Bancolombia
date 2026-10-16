@@ -116,9 +116,9 @@ La pantalla sigue tres pasos:
 2. **Resumen.** De arriba abajo:
    - **Titular**: los archivos procesados, la fecha y hora, y cuántas facturas requieren revisión ("22 de 50 facturas requieren revisión.").
    - **Indicadores**: facturas analizadas, correctas y con inconsistencia (con su porcentaje), **monto sin contabilizar** (suma del total reportado de las facturas sin registro contable) y **diferencia neta contable** (suma de valor contabilizado − total de la factura en las facturas con `VALOR_CONTABLE_DIFERENTE`).
-   - **Composición del resultado**: gráfico de dona donde cada factura cuenta **una sola vez**, por su *hallazgo principal*, así que los segmentos suman el total de facturas. Cuando una factura tiene varias causas, se toma la más grave según este orden: sin registro contable → factura duplicada → valor contable diferente → total diferente → IVA diferente → retención diferente → contabilización pendiente → valor inválido → campo vacío → registro contable duplicado (`frontend/src/app/core/utils/summary-insights.ts`).
+   - **Estado de las facturas**: gráfico de dona con las facturas correctas, las que tienen una inconsistencia y las que tienen dos o más (28 / 17 / 5 con los datos de ejemplo). Los segmentos suman el total de facturas y no dependen de ninguna prioridad entre causas.
    - **Diferencias por concepto**: para IVA, retención y total, la suma de (reportado − calculado) en las facturas marcadas por esa causa; para el valor contable, la suma de (contabilidad − factura). El signo indica hacia dónde va el error: `+` significa que se reportó (o contabilizó) de más.
-   - **Inconsistencias por causa**: barras con el número de facturas que tienen cada causa. Aquí una factura puede contar en varias causas, por eso la suma supera las facturas con inconsistencia. La longitud de cada barra es proporcional a la causa más frecuente.
+   - **Inconsistencias por causa**: barras con el número de facturas que tienen cada causa. El encabezado enlaza con la dona: "28 causas en 22 facturas: 5 facturas tienen más de una, por eso la suma es mayor". La longitud de cada barra es proporcional a la causa más frecuente.
 3. **Detalle por factura.** Es una tabla con estado, montos y causas.
 
 Funciones adicionales:
@@ -350,7 +350,7 @@ frontend/src/app/
 cd backend
 .venv/bin/pytest -q          # PowerShell: .venv\Scripts\pytest -q
 
-# Frontend: 47 tests con Vitest
+# Frontend: 46 tests con Vitest
 cd frontend
 npx ng test --watch=false
 ```
@@ -360,7 +360,7 @@ npx ng test --watch=false
 | `backend/tests/test_rules.py` | Cálculo de IVA, retención y total; redondeo `ROUND_HALF_UP`; tolerancia de ±1; duplicados; cruce contable |
 | `backend/tests/test_csv_reader.py` | BOM, columnas faltantes, archivo vacío, extensión y tamaño |
 | `backend/tests/test_api.py` | **Test golden**: procesa `test-data/` y comprueba 50/28/22, el desglose por causa y las causas de facturas representativas. También cubre los errores HTTP y el CORS |
-| Frontend (`*.spec.ts`) | Servicio HTTP (FormData y URL), store (filtros por estado y tipo de error, búsqueda, paginación, skeleton y archivo marcado como inválido), debounce del buscador, cálculos del resumen (composición y diferencias por concepto), selector de tema y exportación CSV |
+| Frontend (`*.spec.ts`) | Servicio HTTP (FormData y URL), store (filtros por estado y tipo de error, búsqueda, paginación, skeleton y archivo marcado como inválido), debounce del buscador, cálculos del resumen (estado por número de causas y diferencias por concepto), selector de tema y exportación CSV |
 
 El test golden protege las reglas de negocio de punta a punta: si un cambio altera la clasificación de alguna factura, falla.
 

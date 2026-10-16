@@ -2,33 +2,17 @@ import { ChangeDetectionStrategy, Component, LOCALE_ID, computed, inject, input,
 import { DatePipe, DecimalPipe, formatCurrency, formatPercent } from '@angular/common';
 
 import {
-  CAUSE_LABELS,
   CauseFilter,
   CodigoInconsistencia,
   Summary,
 } from '../../../../core/models/reconciliation.model';
-import { CompositionKey, SummaryInsights } from '../../../../core/utils/summary-insights';
+import { SummaryInsights } from '../../../../core/utils/summary-insights';
 import { SkeletonComponent } from '../../atoms/skeleton/skeleton.component';
 import { CauseBarComponent } from '../../molecules/cause-bar/cause-bar.component';
 import { DonutChartComponent, DonutSlice } from '../../molecules/donut-chart/donut-chart.component';
 import { EmptyStateComponent } from '../../molecules/empty-state/empty-state.component';
 import { StatCardComponent, StatTone } from '../../molecules/stat-card/stat-card.component';
 import { StepHeaderComponent } from '../../molecules/step-header/step-header.component';
-
-/** Stable colour per finding (tokens defined for both themes in styles.scss). */
-const SLICE_COLORS: Record<CompositionKey, string> = {
-  CORRECTA: 'var(--chart-ok)',
-  SIN_REGISTRO_CONTABLE: 'var(--chart-sin-registro)',
-  FACTURA_DUPLICADA: 'var(--chart-duplicada)',
-  VALOR_CONTABLE_DIFERENTE: 'var(--chart-valor-contable)',
-  TOTAL_DIFERENTE: 'var(--chart-total)',
-  IVA_DIFERENTE: 'var(--chart-iva)',
-  RETENCION_DIFERENTE: 'var(--chart-retencion)',
-  CONTABILIZACION_PENDIENTE: 'var(--chart-pendiente)',
-  VALOR_INVALIDO: 'var(--chart-invalido)',
-  CAMPO_VACIO: 'var(--chart-vacio)',
-  REGISTRO_CONTABLE_DUPLICADO: 'var(--chart-registro-duplicado)',
-};
 
 interface Kpi {
   label: string;
@@ -130,16 +114,31 @@ export class SummaryPanelComponent {
     ];
   });
 
-  protected readonly slices = computed<DonutSlice[]>(() =>
-    (this.insights()?.composition ?? []).map((slice) => ({
-      label: slice.key === 'CORRECTA' ? 'Correctas' : CAUSE_LABELS[slice.key],
-      value: slice.count,
-      color: SLICE_COLORS[slice.key],
-    })),
-  );
+  /** Facts only: correct / one cause / several causes (no ranking of causes). */
+  protected readonly slices = computed<DonutSlice[]>(() => {
+    const b = this.insights()?.breakdown;
+    if (!b) return [];
+    return [
+      { label: 'Correctas', value: b.correct, color: 'var(--chart-ok)' },
+      { label: 'Con 1 inconsistencia', value: b.single, color: 'var(--chart-one)' },
+      { label: 'Con 2 o más inconsistencias', value: b.multiple, color: 'var(--chart-many)' },
+    ];
+  });
+
+  /** Bridges the donut (invoices) and the cause list (invoice–cause pairs). */
+  protected readonly causesNote = computed(() => {
+    const s = this.summary();
+    const k = this.insights();
+    if (!s || !k || !k.causeCount) return '';
+    const invoices = s.con_inconsistencia === 1 ? 'factura' : 'facturas';
+    const base = `${this.count(k.causeCount)} ${k.causeCount === 1 ? 'causa' : 'causas'} en ${this.count(s.con_inconsistencia)} ${invoices}`;
+    const multiple = k.breakdown.multiple;
+    if (!multiple) return `${base}.`;
+    return `${base}: ${this.count(multiple)} ${multiple === 1 ? 'factura tiene' : 'facturas tienen'} más de una, por eso la suma es mayor.`;
+  });
 
   protected readonly donutLabel = computed(() =>
-    'Composición del resultado: ' + this.slices().map((s) => `${s.label} ${s.value}`).join(', '),
+    'Estado de las facturas: ' + this.slices().map((s) => `${s.label} ${s.value}`).join(', '),
   );
 
   protected signedMoney(amount: number): string {

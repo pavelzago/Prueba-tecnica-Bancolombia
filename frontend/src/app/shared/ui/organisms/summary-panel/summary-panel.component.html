@@ -29,8 +29,8 @@
       <div class="summary__grid">
         <section class="block" aria-labelledby="composition-title">
           <div class="block__head">
-            <h3 class="block__title" id="composition-title">Composición del resultado</h3>
-            <p class="block__note">por hallazgo principal de cada factura</p>
+            <h3 class="block__title" id="composition-title">Estado de las facturas</h3>
+            <p class="block__note">según cuántas inconsistencias tiene cada una</p>
           </div>
           <app-donut-chart [slices]="slices()" unit="facturas" [ariaLabel]="donutLabel()" />
         </section>
@@ -71,13 +71,12 @@
       <section class="block" aria-labelledby="causes-title">
         <div class="block__head">
           <h3 class="block__title" id="causes-title">Inconsistencias por causa</h3>
-          @if (s.por_causa.length) {
-            <p class="block__note">
-              Haz clic en una causa para ver solo esas facturas. Una factura puede tener varias.
-            </p>
+          @if (causesNote()) {
+            <p class="block__note block__note--strong">{{ causesNote() }}</p>
           }
         </div>
         @if (s.por_causa.length) {
+          <p class="block__note block__hint">Haz clic en una causa para ver solo esas facturas.</p>
           <ul class="causes">
             @for (cause of s.por_causa; track cause.codigo) {
               <li>
